@@ -1,26 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #f3f4f6; /* glavna svjetlo siva */
+  --foreground: #b6b1b1;
+  --header-bg: #e5e7eb; /* header svjetlija siva */
+  --slideshow-bg: #d1d5db; /* slideshow srednje siva */
+  --card-bg: #f9fafb; /* kartice ili info sekcije još svjetlija */
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #cfc7c7;
     --foreground: #ededed;
+    --header-bg: #b3adad;
+    --slideshow-bg: #c4aaaa;
+    --card-bg: #383737;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
