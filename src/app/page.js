@@ -54,7 +54,7 @@ export default function Home() {
           </Link>
         </div>
         <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-extrabold text-black whitespace-nowrap tracking-wide">
-          SPORTSKA TREMA
+          SPORTSKAa TREMA
         </h1>
         <Image
           src="/slike/logo.jpg.png"
