@@ -106,33 +106,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <div className="fixed left-0 bottom-0 p-8 z-20 flex flex-row gap-6">
-          <div className="bg-white bg-opacity-90 rounded-lg p-6 shadow flex flex-col items-start gap-2 text-left max-w-xl">
-            <h2 className="text-4xl font-extrabold text-black mb-2">O MIOCU</h2>
-            <p className="text-black text-2xl">
-              Naša škola, popularno zvana MIOC već neko vrijeme nosi epitet jedne
-              od najboljih gimnazija u Republici Hrvatskoj. Protekla godina bila
-              je izuzetno uspješna.
-            </p>
-          </div>
-          <div className="bg-white bg-opacity-90 rounded-lg p-6 shadow flex flex-col items-start gap-2 text-left max-w-xl">
-            <h2 className="text-4xl font-extrabold text-black mb-2">
-              NASTAVNI PROGRAM
-            </h2>
-            <p className="text-black text-2xl">
-              Nastavni plan i program prirodoslovno–matematičke gimnazije naročito
-              je usmjeren na stjecanje znanja i vještina u području matematike.
-            </p>
-          </div>
-          <div className="bg-white bg-opacity-90 rounded-lg p-6 shadow flex flex-col items-start gap-2 text-left max-w-xl">
-            <h2 className="text-4xl font-extrabold text-black mb-2">
-              Vizija i misija škole
-            </h2>
-            <p className="text-black text-2xl">
-              Potičemo znatiželju, razumijevanje i toleranciju kod mladih te pozitivno utječemo na društvo kroz vrhunsko obrazovanje.
-            </p>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
