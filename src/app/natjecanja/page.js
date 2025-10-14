@@ -2,35 +2,79 @@
 import Image from "next/image";
 import Button from "../components/Button";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { dohvatiNatjecanja } from "../../../lib/natjecanja";
+import { onAuthChange, odjaviKorisnika } from "../../../lib/auth";
+import { isAdmin } from "../../../lib/admin";
 
 export default function Natjecanja() {
   const [selected, setSelected] = useState("");
   const [godina, setGodina] = useState("");
   const [search, setSearch] = useState("");
-  // Fake array of competitions
-  const natjecanja = [
-    { id: 1, naziv: "Školsko natjecanje u nogometu", datum: "2024-05-10", slika: "/slike/placeholder.jpg" },
-    { id: 2, naziv: "Rukometni turnir", datum: "2024-06-01", slika: "/slike/placeholder.jpg" },
-    { id: 3, naziv: "Odbojkaški kup", datum: "2024-06-15", slika: "/slike/placeholder.jpg" },
-    { id: 4, naziv: "Atletsko natjecanje", datum: "2024-07-05", slika: "/slike/placeholder.jpg" },
-    { id: 5, naziv: "Natjecanje iz matematike", datum: "2024-05-20", slika: "/slike/placeholder.jpg" },
-    { id: 6, naziv: "Plivački miting", datum: "2024-06-10", slika: "/slike/placeholder.jpg" },
-    { id: 7, naziv: "Teniski turnir", datum: "2024-06-18", slika: "/slike/placeholder.jpg" },
-    { id: 8, naziv: "Natjecanje iz kemije", datum: "2024-05-25", slika: "/slike/placeholder.jpg" },
-    { id: 9, naziv: "Šahovski turnir", datum: "2024-06-22", slika: "/slike/placeholder.jpg" },
-    { id: 10, naziv: "Natjecanje iz informatike", datum: "2024-07-01", slika: "/slike/placeholder.jpg" },
-    { id: 11, naziv: "Natjecanje iz biologije", datum: "2024-07-08", slika: "/slike/placeholder.jpg" },
-    { id: 12, naziv: "Planinarski izazov", datum: "2024-07-12", slika: "/slike/placeholder.jpg" },
-    { id: 13, naziv: "Natjecanje iz fizike", datum: "2024-07-15", slika: "/slike/placeholder.jpg" },
-    { id: 14, naziv: "Stolnoteniski turnir", datum: "2024-07-20", slika: "/slike/placeholder.jpg" },
-    { id: 15, naziv: "Natjecanje iz povijesti", datum: "2024-07-25", slika: "/slike/placeholder.jpg" },
-    { id: 16, naziv: "Natjecanje iz matematike", datum: "2023-05-20", slika: "/slike/placeholder.jpg" },
-    { id: 17, naziv: "Rukometni turnir", datum: "2023-06-01", slika: "/slike/placeholder.jpg" },
-    { id: 18, naziv: "Odbojkaški kup", datum: "2022-06-15", slika: "/slike/placeholder.jpg" },
-    { id: 19, naziv: "Atletsko natjecanje", datum: "2022-07-05", slika: "/slike/placeholder.jpg" },
-    { id: 20, naziv: "Badminton turnir", datum: "2024-08-01", slika: "/slike/placeholder.jpg" },
-  ];
+  const [natjecanja, setNatjecanja] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [user, setUser] = useState(null);
+  const [isUserAdmin, setIsUserAdmin] = useState(false);
+
+  // Provjeri autentifikaciju i admin status
+  useEffect(() => {
+    const unsubscribe = onAuthChange(async (user) => {
+      setUser(user);
+      
+      if (user) {
+        // Provjeri da li je admin
+        const adminStatus = await isAdmin(user.uid);
+        setIsUserAdmin(adminStatus);
+      } else {
+        setIsUserAdmin(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Funkcija za ručno osvježavanje podataka
+  const refreshNatjecanja = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await dohvatiNatjecanja();
+      setNatjecanja(data);
+    } catch (error) {
+      console.error("Greška pri dohvaćanju natjecanja:", error);
+      setError("Greška pri učitavanju natjecanja. Provjerite internetsku vezu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Funkcija za odjavu
+  const handleLogout = async () => {
+    try {
+      await odjaviKorisnika();
+    } catch (error) {
+      console.error("Greška pri odjavi:", error);
+    }
+  };
+  useEffect(() => {
+    const fetchNatjecanja = async () => {
+      try {
+        setLoading(true);
+        const data = await dohvatiNatjecanja();
+        setNatjecanja(data);
+        setError(""); // Ukloni prethodne greške ako je uspješno
+      } catch (error) {
+        console.error("Greška pri dohvaćanju natjecanja:", error);
+        setError("Greška pri učitavanju natjecanja. Provjerite internetsku vezu.");
+        setNatjecanja([]); // Postavi prazan niz umjesto test podataka
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNatjecanja();
+  }, []);
   // Filter competitions by year and search
   const filtriranaNatjecanja = natjecanja.filter(n => {
     const byYear = godina ? n.datum.startsWith(godina) : true;
@@ -60,11 +104,39 @@ export default function Natjecanja() {
           NATJECANJA
         </h1>
         <div className="flex items-center gap-4">
-          <Link href="/login">
-            <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
-              Prijava
-            </button>
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-white font-semibold">
+                Dobrodošli, {user.displayName || user.email}
+              </span>
+              {isUserAdmin && (
+                <Link href="/admin">
+                  <button className="bg-blue-500 text-white font-bold px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200">
+                    Admin Panel
+                  </button>
+                </Link>
+              )}
+              <button 
+                onClick={handleLogout}
+                className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-red-500 hover:text-white transition-colors duration-200"
+              >
+                Odjava
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link href="/login">
+                <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
+                  Prijava
+                </button>
+              </Link>
+              <Link href="/registracija">
+                <button className="bg-[#36b977] text-white font-bold px-4 py-2 rounded hover:bg-[#24995a] transition-colors duration-200">
+                  Registracija
+                </button>
+              </Link>
+            </div>
+          )}
           <Image
             src="/slike/logo.jpg.png"
             alt="Logo"
@@ -102,7 +174,48 @@ export default function Natjecanja() {
       </div>
       {/* Render competitions as large rectangles */}
       <div className="flex flex-col items-center gap-4 py-8 w-full">
-        {filtriranaNatjecanja.map(natjecanje => (
+        {loading && (
+          <div className="text-center py-8">
+            <div className="text-xl text-gray-600">Učitavanje natjecanja...</div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="text-center py-8">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 max-w-md mx-auto">
+              {error}
+            </div>
+            <button
+              onClick={refreshNatjecanja}
+              disabled={loading}
+              className="bg-[#36b977] text-white font-bold px-6 py-2 rounded hover:bg-[#24995a] transition-colors duration-200 disabled:opacity-50"
+            >
+              {loading ? "Osvježavanje..." : "Pokušaj ponovo"}
+            </button>
+          </div>
+        )}
+        
+        {!loading && !error && filtriranaNatjecanja.length === 0 && (
+          <div className="text-center py-8">
+            <div className="text-xl text-gray-600 mb-4">Nema natjecanja za prikaz.</div>
+            {user ? (
+              <Link href="/kreacija">
+                <button className="bg-[#36b977] text-white font-bold px-6 py-2 rounded hover:bg-[#24995a] transition-colors duration-200">
+                  Kreiraj prvo natjecanje
+                </button>
+              </Link>
+            ) : (
+              <div className="text-gray-500">
+                <Link href="/login" className="text-[#36b977] hover:underline font-bold">
+                  Prijavite se
+                </Link>
+                {" "}da biste mogli kreirati natjecanja.
+              </div>
+            )}
+          </div>
+        )}
+        
+        {!loading && !error && filtriranaNatjecanja.map(natjecanje => (
           <div key={natjecanje.id} className="w-1/2 min-h-[200px] bg-white rounded-xl shadow-lg p-8 border-2 border-[#36b977] flex flex-col items-start justify-center">
             <Image
               src={natjecanje.slika || "/slike/placeholder.jpg"}
@@ -113,6 +226,9 @@ export default function Natjecanja() {
             />
             <span className="text-2xl font-bold text-[#666] mb-2">{natjecanje.naziv}</span>
             <span className="text-lg text-[#36b977]">Datum: {natjecanje.datum}</span>
+            {natjecanje.opis && (
+              <span className="text-md text-gray-700 mt-2">{natjecanje.opis}</span>
+            )}
           </div>
         ))}
       </div>

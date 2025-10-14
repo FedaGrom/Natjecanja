@@ -1,89 +1,190 @@
 "use client";
-import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { dodajNatjecanje } from "../../../lib/natjecanja";
+import { useRouter } from "next/navigation";
+import { onAuthChange, getCurrentUser } from "../../../lib/auth";
 
-export default function KreacijaNatjecanja() {
+export default function Kreacija() {
   const [naziv, setNaziv] = useState("");
   const [datum, setDatum] = useState("");
-  const [slika, setSlika] = useState(null);
-  const handleSubmit = (e) => {
+  const [opis, setOpis] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const router = useRouter();
+
+  // Provjeri autentifikaciju
+  useEffect(() => {
+    const unsubscribe = onAuthChange((user) => {
+      setUser(user);
+      setAuthLoading(false);
+      
+      // Ako korisnik nije prijavljen, preusmjeri na login
+      if (!user) {
+        router.push("/login");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Ovdje ide logika za spremanje natjecanja
-    const prikazSlike = slika ? URL.createObjectURL(slika) : "/slike/placeholder.jpg";
-    alert(`Natjecanje: ${naziv}\nDatum: ${datum}\nSlika: ${slika ? slika.name : 'placeholder.jpg'}`);
-    setNaziv("");
-    setDatum("");
-    setSlika(null);
+    
+    // Dodatna provjera prije slanja
+    if (!user) {
+      setError("Morate biti prijavljeni da biste kreirali natjecanje.");
+      return;
+    }
+    
+    setLoading(true);
+    setError("");
+
+    try {
+      await dodajNatjecanje({
+        naziv,
+        datum,
+        opis,
+        slika: "/slike/placeholder.jpg", // default slika
+        createdBy: user.uid, // dodaj info o tome tko je kreirao
+        createdByName: user.displayName || user.email
+      });
+      
+      // Reset form
+      setNaziv("");
+      setDatum("");
+      setOpis("");
+      
+      // Prikaži poruku o uspjehu i preusmjeri
+      alert("Natjecanje je uspješno poslano! Admin će pregledati i odobriti natjecanje prije objave.");
+      router.push("/natjecanja");
+    } catch (error) {
+      console.error("Greška pri kreiranju natjecanja:", error);
+      setError("Greška pri kreiranju natjecanja. Molimo pokušajte ponovo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <>
-      <header className="w-full flex items-center justify-between px-6 py-2 bg-[#666] shadow-md border-b border-gray-200 relative">
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col items-start mr-4">
-            <span className="text-base font-bold text-white leading-tight">
-              III. gimnazija, Split
-            </span>
-            <span className="text-sm text-white leading-tight">
-              Prirodoslovno-matematička gimnazija
-            </span>
+  // Prikaži loading dok se proverava autentifikacija
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f6f6f6]">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-[#36b977] mb-4">
+            Proveravanje...
           </div>
-          <Link href="/natjecanja">
-            <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
-              Natrag
-            </button>
-          </Link>
+          <div className="text-gray-600">
+            Molimo pričekajte dok proveravamo vašu prijavu.
+          </div>
         </div>
-        <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-          Kreiraj natjecanje
+      </div>
+    );
+  }
+
+  // Ako korisnik nije prijavljen, ne prikazuj formu (će biti preusmeren)
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#f6f6f6]">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 border border-gray-200 flex flex-col items-center">
+        <Image
+          src="/slike/logo.jpg.png"
+          alt="Logo"
+          width={64}
+          height={64}
+          className="mb-4 rounded border-2 border-gray-300 shadow bg-white"
+        />
+        <h1 className="text-2xl font-extrabold text-[#36b977] mb-2 tracking-wide">
+          Kreacija
         </h1>
-        <div className="flex items-center gap-4">
-          <Image
-            src="/slike/logo.jpg.png"
-            alt="Logo"
-            width={64}
-            height={64}
-            className="rounded border-2 border-gray-300 shadow bg-white"
-          />
-        </div>
-      </header>
-      <div className="w-full flex flex-col items-center mt-12 bg-white">
+        <p className="text-gray-700 text-center mb-6">
+          Dobrodošli na stranicu za kreaciju natjecanja. Unesite podatke za novo
+          natjecanje.
+        </p>
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-6 w-full max-w-md bg-gray-50 p-8 rounded-xl shadow"
+          className="w-full flex flex-col gap-4"
         >
-          <label className="font-bold text-[#666]">Naziv natjecanja:</label>
-          <input
-            type="text"
-            value={naziv}
-            onChange={(e) => setNaziv(e.target.value)}
-            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
-            required
-          />
-          <label className="font-bold text-[#666]">Datum:</label>
-          <input
-            type="date"
-            value={datum}
-            onChange={(e) => setDatum(e.target.value)}
-            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
-            required
-          />
-          <label className="font-bold text-[#666]">Slika:</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => setSlika(e.target.files[0])}
-            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
-          />
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div>
+            <label
+              htmlFor="naziv"
+              className="block text-gray-700 font-semibold mb-2"
+            >
+              Naziv natjecanja
+            </label>
+            <input
+              id="naziv"
+              type="text"
+              value={naziv}
+              onChange={(e) => setNaziv(e.target.value)}
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
+              required
+              disabled={loading}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="datum"
+              className="block text-gray-700 font-semibold mb-2"
+            >
+              Datum
+            </label>
+            <input
+              id="datum"
+              type="date"
+              value={datum}
+              onChange={(e) => setDatum(e.target.value)}
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
+              required
+              disabled={loading}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="opis"
+              className="block text-gray-700 font-semibold mb-2"
+            >
+              Opis
+            </label>
+            <textarea
+              id="opis"
+              value={opis}
+              onChange={(e) => setOpis(e.target.value)}
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
+              rows={4}
+              required
+              disabled={loading}
+            />
+          </div>
           <button
             type="submit"
-            className="bg-[#36b977] text-white font-bold px-4 py-2 rounded hover:bg-[#24995a] transition-colors duration-200"
+            disabled={loading}
+            className="bg-[#36b977] text-white font-bold px-4 py-2 rounded hover:bg-[#24995a] transition-colors duration-200 shadow disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Spremi
+            {loading ? "Kreiranje..." : "Kreiraj natjecanje"}
           </button>
         </form>
+        <div className="mt-6 text-sm text-gray-500">
+          Želite vidjeti postojeća natjecanja?{" "}
+          <Link
+            href="/natjecanja"
+            className="text-[#36b977] font-bold hover:underline"
+          >
+            Idite na natjecanja
+          </Link>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
