@@ -9,6 +9,7 @@ export default function Natjecanja() {
   const [selected, setSelected] = useState("");
   const [godina, setGodina] = useState("");
   const [search, setSearch] = useState("");
+  const [natjecanja, setNatjecanja] = useState([]);
   const { user, isAdmin, loading, logout } = useAuth();
   
   // Debug user state
@@ -21,6 +22,23 @@ export default function Natjecanja() {
       userObject: user 
     });
   }, [user, isAdmin, loading]);
+
+  // Firestore data loading
+  useEffect(() => {
+    const q = query(collection(db, 'natjecanja'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, 
+      (snapshot) => {
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Firestore data loaded:', items);
+        setNatjecanja(items);
+      }, 
+      (err) => {
+        console.error('Firestore snapshot error:', err);
+        setNatjecanja([]);
+      }
+    );
+    return () => unsub();
+  }, []);
 
   // Show loading while auth is being checked
   if (loading) {
@@ -43,9 +61,6 @@ export default function Natjecanja() {
     img.src = placeholderDataUri;
   };
 
-  // Live competitions from Firestore
-  const [natjecanja, setNatjecanja] = useState([]);
-
   // Possible competitions (from kreacija page) - also shown in menus
   const mogucaNatjecanja = [
     'Nogomet', 'Rukomet', 'Košarka', 'Odbojka', 'Tenis', 'Stolni tenis', 'Atletika', 'Plivanje', 'Ragbi', 'Hokej', 'Badminton', 'Skijanje', 'Snowboard', 'Biciklizam', 'Triatlon', 'Fitnes', 'Ples', 'Borilački sportovi (karate, judo, taekwondo)',
@@ -61,22 +76,6 @@ export default function Natjecanja() {
   // Merge types from Firestore and possible list, keep unique and sorted
   const offeredTypes = Array.from(new Set([...(natjecanja.map(n => n.kategorija).filter(Boolean)), ...mogucaNatjecanja]));
 
-  useEffect(() => {
-    const q = query(collection(db, 'natjecanja'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, 
-      (snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('Firestore data loaded:', items);
-        setNatjecanja(items);
-      }, 
-      (err) => {
-        console.error('Firestore snapshot error:', err);
-        setNatjecanja([]);
-      }
-    );
-    return () => unsub();
-  }, []);
-
   // Filter competitions by year, search and type
   const filtriranaNatjecanja = natjecanja.filter(n => {
     const byYear = godina ? n.datum?.startsWith(godina) : true;
@@ -86,9 +85,9 @@ export default function Natjecanja() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white overflow-x-hidden pt-16">
       {console.log('Natjecanja: About to render with user:', !!user, 'loading:', loading)}
-      <header className="w-full flex items-center justify-between px-6 py-2 bg-[#666] shadow-md border-b border-gray-200 relative z-50">
+      <header className="fixed top-0 left-0 right-0 w-full flex items-center justify-between px-6 py-2 bg-[#666] shadow-md border-b border-gray-200 z-50">
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-start mr-4">
             <span className="text-base font-bold text-white leading-tight">
@@ -135,7 +134,7 @@ export default function Natjecanja() {
 
       {/* Left-side types menu (fixed on the left, hidden on small screens) */}
       <aside className="hidden md:block fixed left-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-r border-gray-100 shadow-md overflow-auto z-40 rounded-r-xl pt-4 transition-transform duration-300">
-        <div className="sticky top-4">
+        <div className="sticky top-0 bg-white p-3">
           <h3 className="text-lg font-bold text-[#36b977] mb-3">Vrste natjecanja</h3>
         </div>
         <div className="space-y-2">
