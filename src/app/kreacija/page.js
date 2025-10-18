@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { db } from "../../firebase/config";
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import Swal from 'sweetalert2';
 
 export default function KreacijaNatjecanja() {
   const [naziv, setNaziv] = useState("");
@@ -66,7 +67,18 @@ export default function KreacijaNatjecanja() {
       const docRef = await addDoc(collection(db, 'natjecanja'), docData);
       console.log('Document saved with ID:', docRef.id);
       
-      alert('Natjecanje spremljeno (ID: ' + docRef.id + ')');
+      // Show success popup and redirect
+      await Swal.fire({
+        icon: 'success',
+        title: 'Uspjeh!',
+        text: 'Natjecanje je uspješno spremljeno',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      
+      // Redirect to natjecanja page
+      router.push("/natjecanja");
+      
       setNaziv("");
       setDatum("");
       setKategorija("");
@@ -89,12 +101,26 @@ export default function KreacijaNatjecanja() {
         };
         natjecanja.push(newNatjecanje);
         localStorage.setItem('natjecanja', JSON.stringify(natjecanja));
-        alert('Natjecanje spremljeno lokalno (Firestore nije dostupan)');
+        
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Spremljeno lokalno',
+          text: 'Firestore nije dostupan, natjecanje je spremljeno lokalno',
+          timer: 3000,
+          showConfirmButton: false
+        });
+        
+        router.push("/natjecanja");
         setNaziv("");
         setDatum("");
         setKategorija("");
       } else {
-        alert('Pogreška: ' + (err.message || 'Nepoznata greška') + '\n\nMolimo postavite Firestore Database u Firebase Console.');
+        await Swal.fire({
+          icon: 'error',
+          title: 'Greška!',
+          text: (err.message || 'Nepoznata greška') + '\n\nMolimo postavite Firestore Database u Firebase Console.',
+          confirmButtonText: 'U redu'
+        });
       }
     } finally {
       setLoading(false);
@@ -180,11 +206,9 @@ export default function KreacijaNatjecanja() {
             className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
           >
             <option value="">-- Odaberite kategoriju --</option>
-            <option value="Sport">Sport</option>
-            <option value="Academic">Akademsko</option>
-            <option value="STEM">STEM / Tehnologija</option>
-            <option value="Arts">Umjetnost / Kultura</option>
-            <option value="Other">Ostalo</option>
+            {mogucaNatjecanja.map((m, i) => (
+              <option key={i} value={m}>{m}</option>
+            ))}
           </select>
           <button
             type="submit"

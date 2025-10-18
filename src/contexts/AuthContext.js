@@ -1,38 +1,24 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, db } from "../firebase/config";
-import { doc, getDoc } from "firebase/firestore";
+import { auth } from "../firebase/config";
 
 const AuthContext = createContext({});
 
-export const useAuth = () => useContext(AuthContext);
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    console.log('AuthContext: Setting up auth listener');
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log('AuthContext: Auth state changed:', user?.email || 'No user');
-      
-      if (user) {
-        setUser(user);
-        // Check if user is admin by looking for a document in 'admins' collection
-        try {
-          const adminDoc = await getDoc(doc(db, 'admins', user.uid));
-          setIsAdmin(adminDoc.exists());
-          console.log('AuthContext: Admin check completed, isAdmin:', adminDoc.exists());
-        } catch (err) {
-          console.error("Error checking admin status:", err);
-          setIsAdmin(false);
-        }
-      } else {
-        setUser(null);
-        setIsAdmin(false);
-      }
+      console.log('AuthContext: User object:', user);
+      setUser(user);
+      setIsAdmin(!!user); // All logged in users are admin for now
       setLoading(false);
+      console.log('AuthContext: State updated - loading: false, user:', user?.email, 'isAdmin:', !!user);
     });
 
     return unsubscribe;
@@ -41,8 +27,10 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await signOut(auth);
-    } catch (err) {
-      console.error("Logout error:", err);
+      setUser(null);
+      setIsAdmin(false);
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
 
@@ -53,11 +41,27 @@ export function AuthProvider({ children }) {
     logout,
   };
 
+  console.log('AuthContext: Rendering with state:', { 
+    user: user?.email || 'null', 
+    isAdmin, 
+    loading,
+    hasUser: !!user 
+  });
+
   return (
     <AuthContext.Provider value={value}>
-      <div key={user?.uid || 'no-user'}>
-        {!loading && children}
-      </div>
+      {children}
     </AuthContext.Provider>
   );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  console.log('useAuth: context received:', context);
+  if (!context) {
+    console.error('useAuth: No context found! AuthProvider missing?');
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  console.log('useAuth: returning context:', context);
+  return context;
 }
