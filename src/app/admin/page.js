@@ -6,6 +6,9 @@ import { onAuthChange } from "../../../lib/auth";
 import { isAdmin, dohvatiZahtjeveZaRegistraciju, azurirajStatusZahtjeva } from "../../../lib/admin";
 import { dohvatiSvaNatjecanja, azurirajStatusNatjecanja } from "../../../lib/natjecanja";
 
+// Force this page to be rendered on client-side only
+export const dynamic = 'force-dynamic';
+
 export default function AdminPanel() {
   const [user, setUser] = useState(null);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
