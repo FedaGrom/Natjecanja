@@ -25,3 +25,32 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+/* Stilovi za input polja - osiguravanje vidljivosti teksta */
+input[type="text"],
+input[type="email"], 
+input[type="password"],
+input[type="date"],
+select,
+textarea {
+  color: #1f2937 !important; /* tamno siva boja teksta */
+  background-color: #ffffff !important; /* bijela pozadina */
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important; /* srednje siva boja za placeholder */
+}
+
+/* Osiguraj da disabled polja i dalje imaju čitljiv tekst */
+input[type="text"]:disabled,
+input[type="email"]:disabled,
+input[type="password"]:disabled,
+input[type="date"]:disabled,
+select:disabled,
+textarea:disabled {
+  color: #4b5563 !important; /* nešto svjetlija siva za disabled */
+  background-color: #f9fafb !important;
+}

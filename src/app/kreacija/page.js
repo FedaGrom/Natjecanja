@@ -188,7 +188,7 @@ export default function KreacijaNatjecanja() {
             type="text"
             value={naziv}
             onChange={(e) => setNaziv(e.target.value)}
-            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
+            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white"
             required
           />
           <label className="font-bold text-[#666]">Datum:</label>
@@ -196,14 +196,14 @@ export default function KreacijaNatjecanja() {
             type="date"
             value={datum}
             onChange={(e) => setDatum(e.target.value)}
-            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
+            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white"
             required
           />
           <label className="font-bold text-[#666]">Kategorija:</label>
           <select
             value={kategorija}
             onChange={e => setKategorija(e.target.value)}
-            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977]"
+            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white"
           >
             <option value="">-- Odaberite kategoriju --</option>
             {mogucaNatjecanja.map((m, i) => (
