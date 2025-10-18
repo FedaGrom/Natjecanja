@@ -10,6 +10,8 @@ export default function Natjecanja() {
   const [godina, setGodina] = useState("");
   const [search, setSearch] = useState("");
   const [natjecanja, setNatjecanja] = useState([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { user, isAdmin, loading, logout } = useAuth();
   
   // Debug user state
@@ -22,6 +24,23 @@ export default function Natjecanja() {
       userObject: user 
     });
   }, [user, isAdmin, loading]);
+
+  // Close mobile menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen || isFilterOpen) {
+        // Check if click is outside the menus
+        const isClickInsideMenu = event.target.closest('.mobile-menu') || event.target.closest('.mobile-filter');
+        if (!isClickInsideMenu) {
+          setIsMenuOpen(false);
+          setIsFilterOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isMenuOpen, isFilterOpen]);
 
   // Firestore data loading
   useEffect(() => {
@@ -87,53 +106,201 @@ export default function Natjecanja() {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden pt-16">
       {console.log('Natjecanja: About to render with user:', !!user, 'loading:', loading)}
-      <header className="fixed top-0 left-0 right-0 w-full flex items-center justify-between px-6 py-2 bg-[#666] shadow-md border-b border-gray-200 z-50">
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col items-start mr-4">
-            <span className="text-base font-bold text-white leading-tight">
-              III. gimnazija, Split
-            </span>
-            <span className="text-sm text-white leading-tight">
-              Prirodoslovno-matematička gimnazija
-            </span>
-          </div>
-        </div>
-        <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-          NATJECANJA
-        </h1>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <>
-              <span className="text-white text-sm">
-                Dobro došli, {user.email} {isAdmin && '(Admin)'}
+      
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">
+        <div className="flex items-center justify-between px-4 py-2">
+          {/* Lijevo - Škola info i logo */}
+          <div className="flex items-center gap-3">
+            <img
+              src="/slike/logo.jpg.png"
+              alt="Logo"
+              width={48}
+              height={48}
+              className="rounded border-2 border-gray-300 shadow bg-white"
+              onError={handleImgError}
+            />
+            <div className="flex flex-col items-start">
+              <span className="text-sm md:text-base font-bold text-white leading-tight">
+                III. gimnazija, Split
               </span>
-              <button 
-                onClick={logout}
-                className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-red-500 hover:text-white transition-colors duration-200"
-              >
-                Odjavi se
-              </button>
-            </>
-          ) : (
-            <Link href="/login">
-              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
-                Prijava
-              </button>
-            </Link>
-          )}
-          <img
-            src="/slike/logo.jpg.png"
-            alt="Logo"
-            width={64}
-            height={64}
-            className="rounded border-2 border-gray-300 shadow bg-white"
-            onError={handleImgError}
-          />
+              <span className="text-xs md:text-sm text-white leading-tight hidden sm:block">
+                Prirodoslovno-matematička gimnazija
+              </span>
+            </div>
+          </div>
+
+          {/* Sredina - Naslov NATJECANJA (samo na desktop) */}
+          <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
+            NATJECANJA
+          </h1>
+
+          {/* Desno - Botuni/Menu */}
+          <div className="flex items-center gap-4">
+            {/* Desktop verzija */}
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <>
+                  <span className="text-white text-sm">
+                    Dobro došli, {user.email} {isAdmin && '(Admin)'}
+                  </span>
+                  {isAdmin && (
+                    <Link href="/kreacija">
+                      <button className="bg-[#36b977] text-white font-bold px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200">
+                        Kreiraj natjecanje
+                      </button>
+                    </Link>
+                  )}
+                  <button 
+                    onClick={logout}
+                    className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-red-500 hover:text-white transition-colors duration-200"
+                  >
+                    Odjavi se
+                  </button>
+                </>
+              ) : (
+                <Link href="/login">
+                  <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
+                    Prijava
+                  </button>
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile hamburger */}
+            <div className="md:hidden">
+              {user ? (
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="bg-white text-[#666] p-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              ) : (
+                <Link href="/login">
+                  <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
+                    Prijava
+                  </button>
+                </Link>
+              )}
+              
+              {/* Mobile dropdown menu */}
+              {isMenuOpen && user && (
+                <div className="mobile-menu absolute right-4 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 min-w-[200px]">
+                  <div className="p-4 border-b border-gray-200">
+                    <span className="text-sm text-gray-600">
+                      {user.email} {isAdmin && '(Admin)'}
+                    </span>
+                  </div>
+                  {isAdmin && (
+                    <Link href="/kreacija">
+                      <button 
+                        onClick={() => setIsMenuOpen(false)}
+                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-[#36b977] hover:text-white transition-colors duration-200"
+                      >
+                        Kreiraj natjecanje
+                      </button>
+                    </Link>
+                  )}
+                  <button 
+                    onClick={() => {
+                      logout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-500 hover:text-white transition-colors duration-200"
+                  >
+                    Odjavi se
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Left-side types menu (fixed on the left, hidden on small screens) */}
-      <aside className="hidden md:block fixed left-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-r border-gray-100 shadow-md overflow-auto z-40 rounded-r-xl pt-4 transition-transform duration-300">
+      {/* Mobilni naslov ispod headera */}
+      <div className="md:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-40 pt-10">
+        <h1 className="text-2xl font-extrabold text-[#36b977] text-center tracking-wide">
+          NATJECANJA
+        </h1>
+      </div>
+
+      {/* Mobile filter dropdown */}
+      <div className="md:hidden fixed top-28 left-0 right-0 bg-white border-b border-gray-200 z-30 pt-10">
+        <button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 text-left font-medium text-gray-700 hover:bg-gray-50"
+        >
+          <span>Filteri i pretraga</span>
+          <svg className={`w-5 h-5 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        {isFilterOpen && (
+          <div className="mobile-filter px-4 pb-4 space-y-4 bg-gray-50">
+            {/* Pretraga */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Pretraži</label>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Pretraži natjecanja..."
+                className="w-full border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] placeholder-gray-500 bg-white"
+              />
+            </div>
+
+            {/* Godina */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Godina</label>
+              <select 
+                value={godina} 
+                onChange={e => setGodina(e.target.value)} 
+                className="w-full p-2 border border-gray-200 rounded bg-white"
+              >
+                <option value="">Sve godine</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+              </select>
+            </div>
+
+            {/* Vrsta natjecanja */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Vrsta natjecanja</label>
+              <select 
+                value={selected} 
+                onChange={e => setSelected(e.target.value)} 
+                className="w-full p-2 border border-gray-200 rounded bg-white"
+              >
+                <option value="">Sve vrste</option>
+                {offeredTypes.map(vrsta => (
+                  <option key={vrsta} value={vrsta}>{vrsta}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Reset botun */}
+            <button 
+              onClick={() => { 
+                setSelected(''); 
+                setGodina(''); 
+                setSearch(''); 
+                setIsFilterOpen(false);
+              }} 
+              className="w-full bg-[#36b977] text-white p-2 rounded hover:bg-green-600"
+            >
+              Resetiraj filtere
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Left-side types menu */}
+      <aside className="hidden lg:block fixed left-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-r border-gray-100 shadow-md overflow-auto z-20 rounded-r-xl pt-4 transition-transform duration-300">
         <div className="sticky top-0 bg-white p-3">
           <h3 className="text-lg font-bold text-[#36b977] mb-3">Vrste natjecanja</h3>
         </div>
@@ -155,19 +322,12 @@ export default function Natjecanja() {
         </div>
       </aside>
 
-      {/* Right-side filter panel */}
-      <aside className="hidden md:block fixed right-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-l border-gray-100 shadow-md overflow-auto z-40 rounded-l-xl pt-4 transition-all duration-300">
+      {/* Desktop Right-side filter panel */}
+      <aside className="hidden lg:block fixed right-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-l border-gray-100 shadow-md overflow-auto z-20 rounded-l-xl pt-4 transition-all duration-300">
         <div className="sticky top-4">
           <h3 className="text-lg font-bold text-[#36b977] mb-3">Filteri</h3>
         </div>
         <div className="space-y-4">
-          {user && isAdmin && (
-            <div>
-              <Link href="/kreacija">
-                <button className="w-full bg-[#36b977] text-white p-2 rounded mb-2 transition-shadow hover:shadow-lg">Kreiraj natjecanje</button>
-              </Link>
-            </div>
-          )}
           <div className="p-3 bg-gray-50 rounded-md shadow-sm">
             <label className="block text-sm font-medium text-[#666] mb-1">Pretraži</label>
             <input
@@ -206,31 +366,44 @@ export default function Natjecanja() {
         </div>
       </aside>
 
-      <div className="w-full py-4 bg-white"></div>
-      {/* Render competitions as large rectangles */}
-      <div className="flex flex-col items-center gap-6 py-8 w-full md:ml-64 md:mr-64">
-        {filtriranaNatjecanja.map(natjecanje => (
-          <div key={natjecanje.id} className="w-full max-w-3xl mx-auto min-h-[180px] bg-white rounded-xl shadow-lg p-6 md:p-8 border-2 border-[#36b977] flex flex-col items-start justify-center">
-            {/* Use native img with fallback for placeholder */}
-            <div className="w-full flex justify-center mb-4">
-              <img
-                src={natjecanje.slika || placeholderDataUri}
-                alt={natjecanje.naziv}
-                width={800}
-                height={240}
-                className="w-full max-w-full h-48 md:h-52 object-cover rounded border border-gray-200"
-                onError={handleImgError}
-                loading="lazy"
-                decoding="async"
-              />
+      {/* Main content area */}
+      <div className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:ml-64 lg:mr-64`}>
+        <div className="flex flex-col items-center gap-6 py-8 px-4">
+          {filtriranaNatjecanja.length > 0 ? (
+            filtriranaNatjecanja.map(natjecanje => (
+              <div key={natjecanje.id} className="w-full max-w-4xl mx-auto min-h-[180px] bg-white rounded-xl shadow-lg p-4 md:p-8 border-2 border-[#36b977] flex flex-col items-start justify-center">
+                {/* Use native img with fallback for placeholder */}
+                <div className="w-full flex justify-center mb-4">
+                  <img
+                    src={natjecanje.slika || placeholderDataUri}
+                    alt={natjecanje.naziv}
+                    width={800}
+                    height={240}
+                    className="w-full max-w-full h-40 md:h-52 object-cover rounded border border-gray-200"
+                    onError={handleImgError}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <span className="text-xl md:text-2xl font-bold text-[#666] mb-2">{natjecanje.naziv}</span>
+                <span className="text-base md:text-lg text-[#36b977]">Datum: {natjecanje.datum}</span>
+                {natjecanje.kategorija && (
+                  <span className="text-sm md:text-md text-[#666]">Kategorija: {natjecanje.kategorija}</span>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg mb-4">Nema natjecanja koja odgovaraju vašim filterima.</p>
+              <button 
+                onClick={() => { setSelected(''); setGodina(''); setSearch(''); }} 
+                className="bg-[#36b977] text-white px-6 py-2 rounded hover:bg-green-600 transition-colors duration-200"
+              >
+                Resetiraj filtere
+              </button>
             </div>
-            <span className="text-2xl font-bold text-[#666] mb-2">{natjecanje.naziv}</span>
-            <span className="text-lg text-[#36b977]">Datum: {natjecanje.datum}</span>
-            {natjecanje.kategorija && (
-              <span className="text-md text-[#666]">Kategorija: {natjecanje.kategorija}</span>
-            )}
-          </div>
-        ))}
+          )}
+        </div>
       </div>
     </div>
   );
