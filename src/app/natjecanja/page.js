@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { db } from "../../firebase/config";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import Swal from 'sweetalert2';
 
 export default function Natjecanja() {
   const [selected, setSelected] = useState("");
@@ -80,20 +81,59 @@ export default function Natjecanja() {
     img.src = placeholderDataUri;
   };
 
+  // Function to delete competition (admin only)
+  const handleDeleteNatjecanje = async (id, naziv) => {
+    if (!isAdmin) return;
+    
+    const result = await Swal.fire({
+      title: 'Jeste li sigurni?',
+      text: `Želite obrisati natjecanje "${naziv}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Da, obriši!',
+      cancelButtonText: 'Odustani'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(db, 'natjecanja', id));
+        await Swal.fire(
+          'Obrisano!',
+          'Natjecanje je uspješno obrisano.',
+          'success'
+        );
+      } catch (error) {
+        console.error('Error deleting document:', error);
+        await Swal.fire(
+          'Greška!',
+          'Dogodila se greška prilikom brisanja natjecanja.',
+          'error'
+        );
+      }
+    }
+  };
+
   // Possible competitions (from kreacija page) - also shown in menus
   const mogucaNatjecanja = [
-    'Nogomet', 'Rukomet', 'Košarka', 'Odbojka', 'Tenis', 'Stolni tenis', 'Atletika', 'Plivanje', 'Ragbi', 'Hokej', 'Badminton', 'Skijanje', 'Snowboard', 'Biciklizam', 'Triatlon', 'Fitnes', 'Ples', 'Borilački sportovi (karate, judo, taekwondo)',
-    'Matematika', 'Fizika', 'Kemija', 'Biologija', 'Informatika / Programiranje', 'Robotika', 'Astronomija', 'Geografija', 'Povijest', 'Engleski jezik', 'Njemački jezik', 'Latinski', 'Filozofija', 'Ekonomija',
-    'Hackathon', 'Web development natjecanje', 'Algoritmičko natjecanje', 'Cyber security / CTF', 'Elektronika / IoT', '3D print natjecanje', 'Dizajn aplikacija',
-    'Likovna umjetnost', 'Glazba', 'Dramska igra / Kazalište', 'Fotografija', 'Film / Kratki film', 'Multimedija / Video produkcija', 'Poetika / Pjesništvo', 'Modni dizajn',
-    'Šah', 'Debata', 'Esej natjecanje', 'Pravno natjecanje / Moot court', 'Poduzetništvo / Startup pitch', 'Inovacije / STEM projekt', 'Ekološki izazov', 'Kulinarsko natjecanje', 'Robotics League', 'Logika i zagonetke',
-    'Orijentacijsko trčanje', 'Planinarenje / Outdoor izazov', 'Stand-up / Komedija', 'Kviz znanja', 'Brainathlon', 'Simulacija UN-a', 'Društvene igre turnir', 'E-sport', 'Gaming turnir',
-    'Mladi znanstvenici', 'Debatni klub', 'Model UN', 'Volonterski izazov', 'Mentorship program natjecanje',
-    'Talent show', 'Robot wars', 'Karting', 'Auto/moto tehničko natjecanje', 'Građevinski izazov', 'Arhitektonski izazov', 'Dizajn interijera'
+    'SPORT',
+    'DRUŠTVENE IGRE TURNIR',
+    'KVIZOVI',
+    'GLAZBA',
+    'OSTALO'
   ];
 
-  // Merge types from Firestore and possible list, keep unique and sorted
-  const offeredTypes = Array.from(new Set([...(natjecanja.map(n => n.kategorija).filter(Boolean)), ...mogucaNatjecanja]));
+  // Use only the fixed list of types requested (do not merge with Firestore values)
+  const offeredTypes = mogucaNatjecanja;
+
+  // Left-side specific list for now
+  const lijevaNatjecanja = [
+    'Mioc Open',
+    'Mioc Klozed',
+    'Pub Quiz',
+    'Briškula i Trešeta turnir'
+  ];
 
   // Filter competitions by year, search and type
   const filtriranaNatjecanja = natjecanja.filter(n => {
@@ -302,16 +342,16 @@ export default function Natjecanja() {
       {/* Desktop Left-side types menu */}
       <aside className="hidden lg:block fixed left-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-r border-gray-100 shadow-md overflow-auto z-20 rounded-r-xl pt-4 transition-transform duration-300">
         <div className="sticky top-0 bg-white p-3">
-          <h3 className="text-lg font-bold text-[#36b977] mb-3">Vrste natjecanja</h3>
+          <h3 className="text-lg font-bold text-[#36b977] mb-3">Natjecanja</h3>
         </div>
         <div className="space-y-2">
           <ul className="px-1">
             <li>
               <button onClick={() => setSelected('')} className={`flex w-full items-center justify-start gap-2 text-left px-3 py-2 rounded-md transition-colors duration-200 ${selected === '' ? 'bg-[#36b977] text-white' : 'text-[#333] hover:bg-[#f0fbf6]'}`}>
-                Sve vrste
+                Sve
               </button>
             </li>
-            {offeredTypes.map(vrsta => (
+            {lijevaNatjecanja.map(vrsta => (
               <li key={vrsta} className="mt-2">
                 <button onClick={() => setSelected(vrsta)} className={`w-full text-left px-2 py-1 rounded ${selected === vrsta ? 'bg-[#36b977] text-white' : 'text-[#666] hover:bg-green-100'}`}>
                   {vrsta}
@@ -391,7 +431,25 @@ export default function Natjecanja() {
                 <span className="text-2xl md:text-3xl font-bold text-[#666] mb-3">{natjecanje.naziv}</span>
                 <span className="text-base md:text-xl text-[#36b977] mb-1">Datum: {natjecanje.datum}</span>
                 {natjecanje.kategorija && (
-                  <span className="text-sm md:text-md text-[#666]">Kategorija: {natjecanje.kategorija}</span>
+                  <span className="text-sm md:text-md text-[#666] mb-3">Kategorija: {natjecanje.kategorija}</span>
+                )}
+                {natjecanje.opis && (
+                  <p className="text-sm text-gray-600 mb-3 max-w-2xl">{natjecanje.opis}</p>
+                )}
+                
+                {/* Admin controls */}
+                {isAdmin && (
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => handleDeleteNatjecanje(natjecanje.id, natjecanje.naziv)}
+                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Obriši
+                    </button>
+                  </div>
                 )}
               </div>
             ))

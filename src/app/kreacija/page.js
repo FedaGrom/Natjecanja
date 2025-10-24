@@ -11,6 +11,10 @@ export default function KreacijaNatjecanja() {
   const [naziv, setNaziv] = useState("");
   const [datum, setDatum] = useState("");
   const [kategorija, setKategorija] = useState("");
+  const [customKategorija, setCustomKategorija] = useState("");
+  const [opis, setOpis] = useState("");
+  const [tipPrijave, setTipPrijave] = useState("web");
+  const [customPrijavaLink, setCustomPrijavaLink] = useState("");
   const [loading, setLoading] = useState(false);
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -41,23 +45,32 @@ export default function KreacijaNatjecanja() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted with:', { naziv, datum, kategorija });
+    
+    // Determine final category - use custom if "OSTALO" is selected
+    const finalKategorija = kategorija === 'OSTALO' ? customKategorija : kategorija;
+    
+    console.log('Form submitted with:', { naziv, datum, kategorija: finalKategorija });
     setLoading(true);
     try {
-      // Map selected category to an image filename (place files later in /slike)
+      // Map selected category to existing image files in /public/slike
       const categoryImageMap = {
-        Sport: '/slike/sport.jpg',
-        Academic: '/slike/academic.jpg',
-        STEM: '/slike/stem.jpg',
-        Arts: '/slike/arts.jpg',
-        Other: '/slike/placeholder.jpg',
+        SPORT: '/slike/sport.jpg',
+        'DRUŠTVENE IGRE TURNIR': '/slike/drustvene_igre.png'
+        KVIZOVI: '/slike/kvizovi.jpg',
+        GLAZBA: '/slike/music.jpg',
+        OSTALO: '/slike/placeholder.jpg',
       };
-      const imageUrl = kategorija ? (categoryImageMap[kategorija] || `/slike/${kategorija.toLowerCase().replace(/\s+/g,'_')}.jpg`) : null;
+      
+      // For OSTALO category, always use placeholder image regardless of custom text
+      const imageUrl = kategorija === 'OSTALO' ? categoryImageMap.OSTALO : categoryImageMap[kategorija];
       
       const docData = {
         naziv,
         datum,
-        kategorija,
+        kategorija: finalKategorija,
+        opis: opis.trim() || null,
+        tipPrijave,
+        prijavaLink: tipPrijave === 'custom' ? customPrijavaLink : null,
         slika: imageUrl || null,
         createdAt: new Date(),
       };
@@ -96,6 +109,9 @@ export default function KreacijaNatjecanja() {
           naziv,
           datum,
           kategorija,
+          opis: opis.trim() || null,
+          tipPrijave,
+          prijavaLink: tipPrijave === 'custom' ? customPrijavaLink : null,
           slika: imageUrl || null,
           createdAt: new Date(),
         };
@@ -114,6 +130,14 @@ export default function KreacijaNatjecanja() {
         setNaziv("");
         setDatum("");
         setKategorija("");
+        setCustomKategorija("");
+        setOpis("");
+        setTipPrijave("web");
+        setCustomPrijavaLink("");
+        setCustomKategorija("");
+        setOpis("");
+        setTipPrijave("web");
+        setCustomPrijavaLink("");
       } else {
         await Swal.fire({
           icon: 'error',
@@ -127,23 +151,13 @@ export default function KreacijaNatjecanja() {
     }
   };
 
-  // Long list of possible competitions
+  // Simplified list of competition categories
   const mogucaNatjecanja = [
-    // Sports
-    'Nogomet', 'Rukomet', 'Košarka', 'Odbojka', 'Tenis', 'Stolni tenis', 'Atletika', 'Plivanje', 'Ragbi', 'Hokej', 'Badminton', 'Skijanje', 'Snowboard', 'Biciklizam', 'Triatlon', 'Fitnes', 'Ples', 'Borilački sportovi (karate, judo, taekwondo)',
-    // Academic
-    'Matematika', 'Fizika', 'Kemija', 'Biologija', 'Informatika / Programiranje', 'Robotika', 'Astronomija', 'Geografija', 'Povijest', 'Engleski jezik', 'Njemački jezik', 'Latinski', 'Filozofija', 'Ekonomija',
-    // STEM / Tech
-    'Hackathon', 'Web development natjecanje', 'Algoritmičko natjecanje', 'Cyber security / CTF', 'Elektronika / IoT', '3D print natjecanje', 'Dizajn aplikacija',
-    // Arts & culture
-    'Likovna umjetnost', 'Glazba', 'Dramska igra / Kazalište', 'Fotografija', 'Film / Kratki film', 'Multimedija / Video produkcija', 'Poetika / Pjesništvo', 'Modni dizajn',
-    // Others
-    'Šah', 'Debata', 'Esej natjecanje', 'Pravno natjecanje / Moot court', 'Poduzetništvo / Startup pitch', 'Inovacije / STEM projekt', 'Ekološki izazov', 'Kulinarsko natjecanje', 'Robotics League', 'Logika i zagonetke',
-    'Orijentacijsko trčanje', 'Planinarenje / Outdoor izazov', 'Stand-up / Komedija', 'Kviz znanja', 'Brainathlon', 'Simulacija UN-a', 'Društvene igre turnir', 'E-sport', 'Gaming turnir',
-    // Educational clubs
-    'Mladi znanstvenici', 'Debatni klub', 'Model UN', 'Volonterski izazov', 'Mentorship program natjecanje',
-    // Misc
-    'Talent show', 'Robot wars', 'Karting', 'Auto/moto tehničko natjecanje', 'Građevinski izazov', 'Arhitektonski izazov', 'Dizajn interijera'
+    'SPORT',
+    'DRUŠTVENE IGRE TURNIR',
+    'KVIZOVI',
+    'GLAZBA',
+    'OSTALO'
   ];
 
   return (
@@ -196,6 +210,7 @@ export default function KreacijaNatjecanja() {
             type="date"
             value={datum}
             onChange={(e) => setDatum(e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
             className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white"
             required
           />
@@ -204,30 +219,85 @@ export default function KreacijaNatjecanja() {
             value={kategorija}
             onChange={e => setKategorija(e.target.value)}
             className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white"
+            required
           >
             <option value="">-- Odaberite kategoriju --</option>
             {mogucaNatjecanja.map((m, i) => (
               <option key={i} value={m}>{m}</option>
             ))}
           </select>
+          
+          {kategorija === 'OSTALO' && (
+            <>
+              <label className="font-bold text-[#666]">Specificiraj kategoriju:</label>
+              <input
+                type="text"
+                value={customKategorija}
+                onChange={(e) => setCustomKategorija(e.target.value)}
+                placeholder="Unesite naziv kategorije..."
+                className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white"
+                required
+              />
+            </>
+          )}
+
+          <label className="font-bold text-[#666]">Opis natjecanja (opcionalno):</label>
+          <textarea
+            value={opis}
+            onChange={(e) => setOpis(e.target.value)}
+            placeholder="Kratki opis natjecanja..."
+            className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white resize-vertical min-h-[80px]"
+            rows={3}
+          />
+
+          <label className="font-bold text-[#666]">Način prijave:</label>
+          <div className="space-y-2">
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                name="tipPrijave"
+                value="web"
+                checked={tipPrijave === 'web'}
+                onChange={(e) => setTipPrijave(e.target.value)}
+                className="text-[#36b977] focus:ring-[#36b977]"
+              />
+              <span>Prijave na ovoj web stranici</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                name="tipPrijave"
+                value="custom"
+                checked={tipPrijave === 'custom'}
+                onChange={(e) => setTipPrijave(e.target.value)}
+                className="text-[#36b977] focus:ring-[#36b977]"
+              />
+              <span>Custom link za prijavu</span>
+            </label>
+          </div>
+
+          {tipPrijave === 'custom' && (
+            <>
+              <label className="font-bold text-[#666]">Link za prijavu:</label>
+              <input
+                type="url"
+                value={customPrijavaLink}
+                onChange={(e) => setCustomPrijavaLink(e.target.value)}
+                placeholder="https://example.com/prijava"
+                className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white"
+                required
+              />
+            </>
+          )}
+          
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (kategorija === 'OSTALO' && !customKategorija.trim()) || (tipPrijave === 'custom' && !customPrijavaLink.trim())}
             className="bg-[#36b977] disabled:opacity-50 text-white font-bold px-4 py-2 rounded hover:bg-[#24995a] transition-colors duration-200"
           >
             {loading ? 'Spremanje...' : 'Spremi'}
           </button>
         </form>
-      </div>
-      <div className="w-full flex flex-col items-center mt-8 bg-white">
-        <div className="w-full max-w-3xl bg-gray-50 p-6 rounded-xl shadow">
-          <h2 className="text-xl font-bold text-[#666] mb-4">Moguća natjecanja (primjeri)</h2>
-          <ul className="grid grid-cols-2 gap-2 list-disc list-inside text-sm text-gray-700">
-            {mogucaNatjecanja.map((n, i) => (
-              <li key={i}>{n}</li>
-            ))}
-          </ul>
-        </div>
       </div>
     </>
   );

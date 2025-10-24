@@ -5,6 +5,7 @@ import { AuthProvider } from "../contexts/AuthContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
+  
   title: "Natjecanja - III. gimnazija Split",
   description: "Portal za natjecanja III. gimnazije Split",
 };
