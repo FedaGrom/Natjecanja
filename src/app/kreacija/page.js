@@ -55,7 +55,7 @@ export default function KreacijaNatjecanja() {
       // Map selected category to existing image files in /public/slike
       const categoryImageMap = {
         SPORT: '/slike/sport.jpg',
-        'DRUŠTVENE IGRE TURNIR': '/slike/drustvene_igre.png'
+        'DRUŠTVENE IGRE TURNIR': '/slike/drustvene_igre.png',
         KVIZOVI: '/slike/kvizovi.jpg',
         GLAZBA: '/slike/music.jpg',
         OSTALO: '/slike/placeholder.jpg',
