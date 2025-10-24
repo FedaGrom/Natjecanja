@@ -367,26 +367,29 @@ export default function Natjecanja() {
       </aside>
 
       {/* Main content area */}
-      <div className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:ml-64 lg:mr-64`}>
-        <div className="flex flex-col items-center gap-6 py-8 px-4">
+      <div
+        className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:w-[calc(100%-32rem)] lg:mx-auto flex items-center justify-center`}
+        style={{ minHeight: 'calc(100vh - 6rem)' }}
+      >
+        <div className="max-w-4xl w-full mx-auto flex flex-col items-center justify-center gap-6 py-8 px-4">
           {filtriranaNatjecanja.length > 0 ? (
             filtriranaNatjecanja.map(natjecanje => (
-              <div key={natjecanje.id} className="w-full max-w-4xl mx-auto min-h-[180px] bg-white rounded-xl shadow-lg p-4 md:p-8 border-2 border-[#36b977] flex flex-col items-start justify-center">
+              <div key={natjecanje.id} className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center">
                 {/* Use native img with fallback for placeholder */}
-                <div className="w-full flex justify-center mb-4">
+                <div className="w-full flex justify-center mb-6">
                   <img
                     src={natjecanje.slika || placeholderDataUri}
                     alt={natjecanje.naziv}
-                    width={800}
-                    height={240}
-                    className="w-full max-w-full h-40 md:h-52 object-cover rounded border border-gray-200"
+                    width={1000}
+                    height={300}
+                    className="w-full max-w-full h-48 md:h-64 object-cover rounded border border-gray-200"
                     onError={handleImgError}
                     loading="lazy"
                     decoding="async"
                   />
                 </div>
-                <span className="text-xl md:text-2xl font-bold text-[#666] mb-2">{natjecanje.naziv}</span>
-                <span className="text-base md:text-lg text-[#36b977]">Datum: {natjecanje.datum}</span>
+                <span className="text-2xl md:text-3xl font-bold text-[#666] mb-3">{natjecanje.naziv}</span>
+                <span className="text-base md:text-xl text-[#36b977] mb-1">Datum: {natjecanje.datum}</span>
                 {natjecanje.kategorija && (
                   <span className="text-sm md:text-md text-[#666]">Kategorija: {natjecanje.kategorija}</span>
                 )}
