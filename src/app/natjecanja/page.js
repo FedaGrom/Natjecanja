@@ -424,9 +424,9 @@ export default function Natjecanja() {
         <div className="max-w-4xl w-full mx-auto flex flex-col items-center justify-center gap-6 py-8 px-4">
           {filtriranaNatjecanja.length > 0 ? (
             filtriranaNatjecanja.map(natjecanje => (
-              <div key={natjecanje.id} className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative">
+              <div key={natjecanje.id} className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300">
                 {/* Use gradient background instead of image */}
-                <div className="w-full flex justify-center mb-6">
+                <Link href={`/natjecanja/${natjecanje.id}`} className="w-full flex justify-center mb-6 cursor-pointer">
                   {natjecanje.slika ? (
                     // Legacy support for existing competitions with images
                     <img
@@ -434,14 +434,14 @@ export default function Natjecanja() {
                       alt={natjecanje.naziv}
                       width={1000}
                       height={300}
-                      className="w-full max-w-full h-48 md:h-64 object-cover rounded border border-gray-200"
+                      className="w-full max-w-full h-48 md:h-64 object-cover rounded border border-gray-200 hover:opacity-90 transition-opacity duration-200"
                       loading="lazy"
                       decoding="async"
                     />
                   ) : (
                     // New gradient style for new competitions
                     <div
-                      className="w-full max-w-full h-48 md:h-64 rounded border border-gray-200 flex items-center justify-center"
+                      className="w-full max-w-full h-48 md:h-64 rounded border border-gray-200 flex items-center justify-center hover:opacity-90 transition-opacity duration-200"
                       style={{ 
                         background: natjecanje.gradientStyle || getCategoryGradient(natjecanje.kategorija),
                         backgroundSize: 'cover',
@@ -458,8 +458,12 @@ export default function Natjecanja() {
                       </div>
                     </div>
                   )}
-                </div>
-                <span className="text-2xl md:text-3xl font-bold text-[#666] mb-3">{natjecanje.naziv}</span>
+                </Link>
+                <Link href={`/natjecanja/${natjecanje.id}`}>
+                  <span className="text-2xl md:text-3xl font-bold text-[#666] mb-3 cursor-pointer hover:text-[#36b977] transition-colors duration-200">
+                    {natjecanje.naziv}
+                  </span>
+                </Link>
                 <span className="text-base md:text-xl text-[#36b977] mb-1">Datum: {natjecanje.datum}</span>
                 {natjecanje.kategorija && (
                   <span className="text-sm md:text-md text-[#666] mb-3">Kategorija: {natjecanje.kategorija}</span>
