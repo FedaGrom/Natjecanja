@@ -16,6 +16,8 @@ export default function DetaljiNatjecanja() {
   const [editMode, setEditMode] = useState(false);
   const [contentBlocks, setContentBlocks] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   // Function to get gradient style for category
   const getCategoryGradient = (kategorija) => {
@@ -101,6 +103,51 @@ export default function DetaljiNatjecanja() {
   // Delete content block
   const deleteContentBlock = (id) => {
     setContentBlocks(contentBlocks.filter(block => block.id !== id));
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e, index) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    
+    if (draggedItem === null || draggedItem === dropIndex) {
+      setDraggedItem(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newBlocks = [...contentBlocks];
+    const draggedBlock = newBlocks[draggedItem];
+    
+    // Remove dragged item
+    newBlocks.splice(draggedItem, 1);
+    
+    // Insert at new position
+    const insertIndex = draggedItem < dropIndex ? dropIndex - 1 : dropIndex;
+    newBlocks.splice(insertIndex, 0, draggedBlock);
+    
+    setContentBlocks(newBlocks);
+    setDraggedItem(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverIndex(null);
   };
 
   // Save changes
@@ -262,15 +309,40 @@ export default function DetaljiNatjecanja() {
         {/* Content blocks */}
         <div className="space-y-4">
           {contentBlocks.map((block, index) => (
-            <div key={block.id} className="relative group">
+            <div 
+              key={block.id} 
+              className={`relative group transition-all duration-200 ${
+                editMode && isAdmin ? 'cursor-move' : ''
+              } ${
+                dragOverIndex === index ? 'border-t-4 border-[#36b977] pt-4' : ''
+              } ${
+                draggedItem === index ? 'opacity-50 scale-95' : ''
+              }`}
+              draggable={editMode && isAdmin}
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+            >
               {editMode && isAdmin && (
-                <button
-                  onClick={() => deleteContentBlock(block.id)}
-                  className="absolute -right-2 -top-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                  title="Obriši blok"
-                >
-                  ×
-                </button>
+                <>
+                  {/* Drag handle */}
+                  <div className="absolute -left-8 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zM6 4a1 1 0 011-1h6a1 1 0 011 1v12a1 1 0 01-1 1H7a1 1 0 01-1-1V4z" />
+                      <path d="M9 6a1 1 0 000 2h2a1 1 0 100-2H9zM9 10a1 1 0 100 2h2a1 1 0 100-2H9z" />
+                    </svg>
+                  </div>
+                  {/* Delete button */}
+                  <button
+                    onClick={() => deleteContentBlock(block.id)}
+                    className="absolute -right-2 -top-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                    title="Obriši blok"
+                  >
+                    ×
+                  </button>
+                </>
               )}
               
               {block.type === 'title' && (
@@ -279,8 +351,9 @@ export default function DetaljiNatjecanja() {
                     type="text"
                     value={block.content}
                     onChange={(e) => updateContentBlock(block.id, e.target.value)}
-                    className="w-full text-3xl font-bold text-[#36b977] border-2 border-dashed border-gray-300 rounded p-2 bg-transparent focus:outline-none focus:border-[#36b977]"
+                    className="w-full text-3xl font-bold text-[#36b977] border-2 border-dashed border-gray-300 rounded p-2 bg-transparent focus:outline-none focus:border-[#36b977] cursor-text"
                     placeholder="Unesite naslov..."
+                    onDragStart={(e) => e.preventDefault()}
                   />
                 ) : (
                   <h2 className="text-3xl font-bold text-[#36b977] mb-4">{block.content}</h2>
@@ -293,8 +366,9 @@ export default function DetaljiNatjecanja() {
                     type="text"
                     value={block.content}
                     onChange={(e) => updateContentBlock(block.id, e.target.value)}
-                    className="w-full text-2xl font-semibold text-[#666] border-2 border-dashed border-gray-300 rounded p-2 bg-transparent focus:outline-none focus:border-[#36b977]"
+                    className="w-full text-2xl font-semibold text-[#666] border-2 border-dashed border-gray-300 rounded p-2 bg-transparent focus:outline-none focus:border-[#36b977] cursor-text"
                     placeholder="Unesite podnaslov..."
+                    onDragStart={(e) => e.preventDefault()}
                   />
                 ) : (
                   <h3 className="text-2xl font-semibold text-[#666] mb-3">{block.content}</h3>
@@ -306,8 +380,9 @@ export default function DetaljiNatjecanja() {
                   <textarea
                     value={block.content}
                     onChange={(e) => updateContentBlock(block.id, e.target.value)}
-                    className="w-full text-gray-700 border-2 border-dashed border-gray-300 rounded p-4 bg-transparent focus:outline-none focus:border-[#36b977] min-h-[100px] resize-vertical"
+                    className="w-full text-gray-700 border-2 border-dashed border-gray-300 rounded p-4 bg-transparent focus:outline-none focus:border-[#36b977] min-h-[100px] resize-vertical cursor-text"
                     placeholder="Unesite tekst..."
+                    onDragStart={(e) => e.preventDefault()}
                   />
                 ) : (
                   <div className="text-gray-700 mb-4 whitespace-pre-wrap">{block.content}</div>
@@ -315,33 +390,59 @@ export default function DetaljiNatjecanja() {
               )}
             </div>
           ))}
+          
+          {/* Drop zone at the end */}
+          {editMode && isAdmin && contentBlocks.length > 0 && (
+            <div 
+              className={`h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 transition-all duration-200 ${
+                dragOverIndex === contentBlocks.length ? 'border-[#36b977] bg-green-50' : ''
+              }`}
+              onDragOver={(e) => handleDragOver(e, contentBlocks.length)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, contentBlocks.length)}
+            >
+              Povucite ovdje za dodavanje na kraj
+            </div>
+          )}
         </div>
 
         {/* Add content button (only visible to admins in edit mode) */}
         {editMode && isAdmin && (
           <div className="mt-8 p-4 border-2 border-dashed border-gray-300 rounded-lg">
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <span className="text-gray-600 font-medium">Dodaj novi sadržaj:</span>
               <div className="flex gap-2">
                 <button
                   onClick={() => addContentBlock('title')}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200 flex items-center gap-2"
                 >
-                  + Naslov
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Naslov
                 </button>
                 <button
                   onClick={() => addContentBlock('subtitle')}
-                  className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200"
+                  className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200 flex items-center gap-2"
                 >
-                  + Podnaslov
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Podnaslov
                 </button>
                 <button
                   onClick={() => addContentBlock('text')}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200 flex items-center gap-2"
                 >
-                  + Tekst
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Tekst
                 </button>
               </div>
+            </div>
+            <div className="mt-3 text-sm text-gray-500 text-center">
+              💡 Tip: Povucite blokove gore/dolje da promijenite redoslijed
             </div>
           </div>
         )}
