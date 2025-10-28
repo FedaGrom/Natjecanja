@@ -52,17 +52,17 @@ export default function KreacijaNatjecanja() {
     console.log('Form submitted with:', { naziv, datum, kategorija: finalKategorija });
     setLoading(true);
     try {
-      // Map selected category to existing image files in /public/slike
-      const categoryImageMap = {
-        SPORT: '/slike/sport.jpg',
-        'DRUŠTVENE IGRE TURNIR': '/slike/drustvene_igre.png',
-        KVIZOVI: '/slike/kvizovi.jpg',
-        GLAZBA: '/slike/music.jpg',
-        OSTALO: '/slike/placeholder.jpg',
+      // Map selected category to gradient colors instead of images
+      const categoryGradientMap = {
+        SPORT: 'linear-gradient(135deg, #3B82F6, #10B981)',
+        'DRUŠTVENE IGRE TURNIR': 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+        KVIZOVI: 'linear-gradient(135deg, #F59E0B, #EF4444)',
+        GLAZBA: 'linear-gradient(135deg, #EF4444, #F97316)',
+        OSTALO: 'linear-gradient(135deg, #6B7280, #9CA3AF)',
       };
       
-      // For OSTALO category, always use placeholder image regardless of custom text
-      const imageUrl = kategorija === 'OSTALO' ? categoryImageMap.OSTALO : categoryImageMap[kategorija];
+      // For OSTALO category, always use placeholder gradient regardless of custom text
+      const gradientStyle = kategorija === 'OSTALO' ? categoryGradientMap.OSTALO : categoryGradientMap[kategorija];
       
       const docData = {
         naziv,
@@ -71,7 +71,7 @@ export default function KreacijaNatjecanja() {
         opis: opis.trim() || null,
         tipPrijave,
         prijavaLink: tipPrijave === 'custom' ? customPrijavaLink : null,
-        slika: imageUrl || null,
+        gradientStyle: gradientStyle || null,
         createdAt: new Date(),
       };
       console.log('Attempting to save to Firestore:', docData);
@@ -112,7 +112,7 @@ export default function KreacijaNatjecanja() {
           opis: opis.trim() || null,
           tipPrijave,
           prijavaLink: tipPrijave === 'custom' ? customPrijavaLink : null,
-          slika: imageUrl || null,
+          gradientStyle: gradientStyle || null,
           createdAt: new Date(),
         };
         natjecanja.push(newNatjecanje);

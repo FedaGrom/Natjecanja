@@ -69,16 +69,27 @@ export default function Natjecanja() {
     );
   }
 
-  // inline SVG placeholder (used if the file in /slike is missing)
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="192"><rect width="100%" height="100%" fill="#eef2f7"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="20" font-family="Arial, Helvetica, sans-serif">Nema slike</text></svg>`;
-  const placeholderDataUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-  
-  // Helper to try alternative image names before falling back
-  const handleImgError = (e) => {
-    const img = e.currentTarget;
-    const src = img.getAttribute('src') || '';
-    console.warn('Image failed to load:', src);
-    img.src = placeholderDataUri;
+  // Function to handle registration button click
+  const handlePrijava = (natjecanje) => {
+    if (natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink) {
+      // Open custom link in new tab
+      window.open(natjecanje.prijavaLink, '_blank');
+    } else {
+      // Default behavior - could be internal registration system
+      alert('Funkcionalnost prijave će biti implementirana uskoro.');
+    }
+  };
+
+  // Function to get gradient style for category
+  const getCategoryGradient = (kategorija) => {
+    const categoryGradientMap = {
+      SPORT: 'linear-gradient(135deg, #3B82F6, #10B981)',
+      'DRUŠTVENE IGRE TURNIR': 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+      KVIZOVI: 'linear-gradient(135deg, #F59E0B, #EF4444)',
+      GLAZBA: 'linear-gradient(135deg, #EF4444, #F97316)',
+      OSTALO: 'linear-gradient(135deg, #6B7280, #9CA3AF)',
+    };
+    return categoryGradientMap[kategorija] || 'linear-gradient(135deg, #6B7280, #9CA3AF)';
   };
 
   // Function to delete competition (admin only)
@@ -158,7 +169,6 @@ export default function Natjecanja() {
               width={48}
               height={48}
               className="rounded border-2 border-gray-300 shadow bg-white"
-              onError={handleImgError}
             />
             <div className="flex flex-col items-start">
               <span className="text-sm md:text-base font-bold text-white leading-tight">
@@ -414,19 +424,40 @@ export default function Natjecanja() {
         <div className="max-w-4xl w-full mx-auto flex flex-col items-center justify-center gap-6 py-8 px-4">
           {filtriranaNatjecanja.length > 0 ? (
             filtriranaNatjecanja.map(natjecanje => (
-              <div key={natjecanje.id} className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center">
-                {/* Use native img with fallback for placeholder */}
+              <div key={natjecanje.id} className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative">
+                {/* Use gradient background instead of image */}
                 <div className="w-full flex justify-center mb-6">
-                  <img
-                    src={natjecanje.slika || placeholderDataUri}
-                    alt={natjecanje.naziv}
-                    width={1000}
-                    height={300}
-                    className="w-full max-w-full h-48 md:h-64 object-cover rounded border border-gray-200"
-                    onError={handleImgError}
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  {natjecanje.slika ? (
+                    // Legacy support for existing competitions with images
+                    <img
+                      src={natjecanje.slika}
+                      alt={natjecanje.naziv}
+                      width={1000}
+                      height={300}
+                      className="w-full max-w-full h-48 md:h-64 object-cover rounded border border-gray-200"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    // New gradient style for new competitions
+                    <div
+                      className="w-full max-w-full h-48 md:h-64 rounded border border-gray-200 flex items-center justify-center"
+                      style={{ 
+                        background: natjecanje.gradientStyle || getCategoryGradient(natjecanje.kategorija),
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }}
+                    >
+                      <div className="text-center text-white">
+                        <div className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
+                          {natjecanje.kategorija}
+                        </div>
+                        <div className="text-lg md:text-xl font-medium drop-shadow-md">
+                          {natjecanje.naziv}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <span className="text-2xl md:text-3xl font-bold text-[#666] mb-3">{natjecanje.naziv}</span>
                 <span className="text-base md:text-xl text-[#36b977] mb-1">Datum: {natjecanje.datum}</span>
@@ -436,13 +467,30 @@ export default function Natjecanja() {
                 {natjecanje.opis && (
                   <p className="text-sm text-gray-600 mb-3 max-w-2xl">{natjecanje.opis}</p>
                 )}
+
+                {/* Registration button in bottom right corner */}
+                <button
+                  onClick={() => handlePrijava(natjecanje)}
+                  className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                  title={natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink ? 'Otvori vanjski link za prijavu' : 'Prijavi se na natjecanje'}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    )}
+                  </svg>
+                  {natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink ? 'Prijavi se' : 'Prijavi se'}
+                </button>
                 
                 {/* Admin controls */}
                 {isAdmin && (
-                  <div className="mt-4 flex gap-2">
+                  <div className="absolute bottom-4 left-4 flex gap-2">
                     <button
                       onClick={() => handleDeleteNatjecanje(natjecanje.id, natjecanje.naziv)}
-                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center gap-2"
+                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                      title="Obriši natjecanje"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
