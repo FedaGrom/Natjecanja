@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { db } from "../../../firebase/config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../../../contexts/AuthContext";
+import Sidebar from "../../components/Sidebar";
 import Swal from 'sweetalert2';
 
 export default function DetaljiNatjecanja() {
@@ -18,6 +19,7 @@ export default function DetaljiNatjecanja() {
   const [saving, setSaving] = useState(false);
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Function to get gradient style for category
   const getCategoryGradient = (kategorija) => {
@@ -205,6 +207,12 @@ export default function DetaljiNatjecanja() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+
       {/* Header */}
       <header className="w-full bg-[#666] shadow-md border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
@@ -255,7 +263,7 @@ export default function DetaljiNatjecanja() {
       </header>
 
       {/* Main content */}
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-6 lg:ml-80">
         {/* Competition header */}
         <div className="mb-8">
           {/* Gradient banner */}

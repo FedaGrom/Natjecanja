@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { db } from "../../firebase/config";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import Sidebar from "../components/Sidebar";
 import Swal from 'sweetalert2';
 
 export default function Natjecanja() {
@@ -13,6 +14,7 @@ export default function Natjecanja() {
   const [natjecanja, setNatjecanja] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, isAdmin, loading, logout } = useAuth();
   
   // Debug user state
@@ -137,14 +139,6 @@ export default function Natjecanja() {
 
   // Use only the fixed list of types requested (do not merge with Firestore values)
   const offeredTypes = mogucaNatjecanja;
-
-  // Left-side specific list for now
-  const lijevaNatjecanja = [
-    'Mioc Open',
-    'Mioc Klozed',
-    'Pub Quiz',
-    'Briškula i Trešeta turnir'
-  ];
 
   // Filter competitions by year, search and type
   const filtriranaNatjecanja = natjecanja.filter(n => {
@@ -349,28 +343,11 @@ export default function Natjecanja() {
         )}
       </div>
 
-      {/* Desktop Left-side types menu */}
-      <aside className="hidden lg:block fixed left-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-r border-gray-100 shadow-md overflow-auto z-20 rounded-r-xl pt-4 transition-transform duration-300">
-        <div className="sticky top-0 bg-white p-3">
-          <h3 className="text-lg font-bold text-[#36b977] mb-3">Natjecanja</h3>
-        </div>
-        <div className="space-y-2">
-          <ul className="px-1">
-            <li>
-              <button onClick={() => setSelected('')} className={`flex w-full items-center justify-start gap-2 text-left px-3 py-2 rounded-md transition-colors duration-200 ${selected === '' ? 'bg-[#36b977] text-white' : 'text-[#333] hover:bg-[#f0fbf6]'}`}>
-                Sve
-              </button>
-            </li>
-            {lijevaNatjecanja.map(vrsta => (
-              <li key={vrsta} className="mt-2">
-                <button onClick={() => setSelected(vrsta)} className={`w-full text-left px-2 py-1 rounded ${selected === vrsta ? 'bg-[#36b977] text-white' : 'text-[#666] hover:bg-green-100'}`}>
-                  {vrsta}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </aside>
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
 
       {/* Desktop Right-side filter panel */}
       <aside className="hidden lg:block fixed right-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-l border-gray-100 shadow-md overflow-auto z-20 rounded-l-xl pt-4 transition-all duration-300">
@@ -418,7 +395,7 @@ export default function Natjecanja() {
 
       {/* Main content area */}
       <div
-        className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:w-[calc(100%-32rem)] lg:mx-auto flex items-center justify-center`}
+        className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:pl-80 lg:pr-64 flex items-center justify-center`}
         style={{ minHeight: 'calc(100vh - 6rem)' }}
       >
         <div className="max-w-4xl w-full mx-auto flex flex-col items-center justify-center gap-6 py-8 px-4">
