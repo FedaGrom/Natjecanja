@@ -72,7 +72,10 @@ export default function KreacijaNatjecanja() {
         tipPrijave,
         prijavaLink: tipPrijave === 'custom' ? customPrijavaLink : null,
         gradientStyle: gradientStyle || null,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
+        createdBy: user.email,
+        status: 'pending', // Nova natjecanja čekaju odobravanje admina
+        timestamp: Date.now()
       };
       console.log('Attempting to save to Firestore:', docData);
       
@@ -80,21 +83,33 @@ export default function KreacijaNatjecanja() {
       const docRef = await addDoc(collection(db, 'natjecanja'), docData);
       console.log('Document saved with ID:', docRef.id);
       
-      // Show success popup and redirect
-      await Swal.fire({
+      // Show success popup with options
+      const result = await Swal.fire({
         icon: 'success',
-        title: 'Uspjeh!',
-        text: 'Natjecanje je uspješno spremljeno',
-        timer: 2000,
-        showConfirmButton: false
+        title: 'Zahtjev poslan!',
+        html: `
+          <p>Zahtjev za natjecanje "${naziv}" je uspješno poslan administratoru.</p>
+          <p><small>Administrator će pregledati i odobriti vaš zahtjev.</small></p>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Idi na moja natjecanja',
+        cancelButtonText: 'Kreiraj novo natjecanje',
+        confirmButtonColor: '#36b977',
+        cancelButtonColor: '#6b7280'
       });
       
-      // Redirect to natjecanja page
-      router.push("/natjecanja");
-      
-      setNaziv("");
-      setDatum("");
-      setKategorija("");
+      if (result.isConfirmed) {
+        router.push("/moja-natjecanja");
+      } else {
+        // Reset form for new competition
+        setNaziv("");
+        setDatum("");
+        setKategorija("");
+        setCustomKategorija("");
+        setOpis("");
+        setTipPrijave("web");
+        setCustomPrijavaLink("");
+      }
     } catch (err) {
       console.error('Detailed error:', err);
       console.error('Error code:', err.code);

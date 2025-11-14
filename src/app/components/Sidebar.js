@@ -10,12 +10,17 @@ export default function Sidebar({ isOpen, onToggle, className = "" }) {
   const [natjecanja, setNatjecanja] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Firestore data loading
+  // Firestore data loading - get all competitions and filter on client side
   useEffect(() => {
-    const q = query(collection(db, 'natjecanja'), orderBy('createdAt', 'desc'));
+    const q = query(
+      collection(db, 'natjecanja'), 
+      orderBy('createdAt', 'desc')
+    );
     const unsub = onSnapshot(q, 
       (snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const items = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(item => item.status === 'published'); // Filter on client side
         console.log('Sidebar: Firestore data loaded:', items);
         setNatjecanja(items);
         setLoading(false);

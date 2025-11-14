@@ -26,6 +26,7 @@ export default function Natjecanja() {
       loading,
       userObject: user 
     });
+    console.log('Natjecanja: isAdmin check:', isAdmin, 'typeof:', typeof isAdmin);
   }, [user, isAdmin, loading]);
 
   // Close mobile menus when clicking outside
@@ -45,12 +46,17 @@ export default function Natjecanja() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [isMenuOpen, isFilterOpen]);
 
-  // Firestore data loading
+  // Firestore data loading - get all competitions and filter on client side
   useEffect(() => {
-    const q = query(collection(db, 'natjecanja'), orderBy('createdAt', 'desc'));
+    const q = query(
+      collection(db, 'natjecanja'), 
+      orderBy('createdAt', 'desc')
+    );
     const unsub = onSnapshot(q, 
       (snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const items = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(item => item.status === 'published'); // Filter on client side
         console.log('Firestore data loaded:', items);
         setNatjecanja(items);
       }, 
@@ -185,22 +191,31 @@ export default function Natjecanja() {
             <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <>
-                  <span className="text-white text-sm">
-                    Dobro došli, {user.email} {isAdmin && '(Admin)'}
-                  </span>
-                  {isAdmin && (
+                  <div className="flex items-center gap-2">
+                    <Link href="/moja-natjecanja">
+                      <button className="bg-blue-600 text-white font-bold px-4 py-2 rounded hover:bg-blue-700 transition-colors duration-200">
+                        Moja natjecanja
+                      </button>
+                    </Link>
                     <Link href="/kreacija">
                       <button className="bg-[#36b977] text-white font-bold px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200">
                         Kreiraj natjecanje
                       </button>
                     </Link>
-                  )}
-                  <button 
-                    onClick={logout}
-                    className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-red-500 hover:text-white transition-colors duration-200"
-                  >
-                    Odjavi se
-                  </button>
+                    {isAdmin && (
+                      <Link href="/admin">
+                        <button className="bg-purple-600 text-white font-bold px-4 py-2 rounded hover:bg-purple-700 transition-colors duration-200">
+                          Admin panel
+                        </button>
+                      </Link>
+                    )}
+                    <button 
+                      onClick={logout}
+                      className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-red-500 hover:text-white transition-colors duration-200"
+                    >
+                      Odjavi se
+                    </button>
+                  </div>
                 </>
               ) : (
                 <Link href="/login">
@@ -238,13 +253,29 @@ export default function Natjecanja() {
                       {user.email} {isAdmin && '(Admin)'}
                     </span>
                   </div>
+                  <Link href="/moja-natjecanja">
+                    <button 
+                      onClick={() => setIsMenuOpen(false)}
+                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors duration-200"
+                    >
+                      Moja natjecanja
+                    </button>
+                  </Link>
+                  <Link href="/kreacija">
+                    <button 
+                      onClick={() => setIsMenuOpen(false)}
+                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-[#36b977] hover:text-white transition-colors duration-200"
+                    >
+                      Kreiraj natjecanje
+                    </button>
+                  </Link>
                   {isAdmin && (
-                    <Link href="/kreacija">
+                    <Link href="/admin">
                       <button 
                         onClick={() => setIsMenuOpen(false)}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-[#36b977] hover:text-white transition-colors duration-200"
+                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-500 hover:text-white transition-colors duration-200"
                       >
-                        Kreiraj natjecanje
+                        Admin panel
                       </button>
                     </Link>
                   )}

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebase/config";
 import { useRouter } from "next/navigation";
@@ -107,12 +108,22 @@ export default function Login() {
         </form>
 
         <div className="mt-8 text-center">
-          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mb-4">
             <p className="text-lg font-semibold text-blue-700 mb-2">
-              Nemate pristup?
+              Nemate račun?
             </p>
-            <p className="text-base text-blue-600">
-              Obratite se svojem profesoru informatike ili administratoru sustava za registraciju.
+            <p className="text-base text-blue-600 mb-3">
+              Pošaljite zahtjev administratoru za registraciju na platformu natjecanja.
+            </p>
+            <Link href="/registracija">
+              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+                Zahtjev za registraciju
+              </button>
+            </Link>
+          </div>
+          <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+            <p className="text-sm text-gray-600">
+              Alternativno, možete se obratiti svojem profesoru informatike ili administratoru sustava.
             </p>
           </div>
         </div>
