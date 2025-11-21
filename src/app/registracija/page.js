@@ -107,33 +107,49 @@ export default function Registracija() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="w-full bg-[#666] shadow-md border-b border-gray-200">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
-            <Link href="/natjecanja">
-              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
-                ← Natrag
-              </button>
-            </Link>
+      <header className="sticky top-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">
+        <div className="flex items-center justify-between px-4 py-2">
+          {/* Lijevo - Škola info i logo */}
+          <div className="flex items-center gap-3">
+            <img
+              src="/slike/logo.jpg.png"
+              alt="Logo"
+              width={48}
+              height={48}
+              className="rounded border-2 border-gray-300 shadow bg-white"
+            />
             <div className="flex flex-col">
-              <span className="text-base font-bold text-white">
+              <span className="text-base font-bold text-white leading-tight">
                 III. gimnazija, Split
               </span>
-              <span className="text-sm text-white">
+              <span className="text-sm text-white leading-tight">
                 Prirodoslovno-matematička gimnazija
               </span>
             </div>
           </div>
-          
-          <h1 className="text-2xl font-bold text-white">
-            Registracija
+
+          {/* Sredina - Naslov REGISTRACIJA */}
+          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
+            REGISTRACIJA
           </h1>
-          
-          <Link href="/login">
-            <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
-              Prijava
-            </button>
-          </Link>
+
+          {/* Desno - Home button */}
+          <div className="flex items-center gap-4">
+            <Link href="/natjecanja">
+              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                Početna
+              </button>
+            </Link>
+            
+            <Link href="/login">
+              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
+                Prijava
+              </button>
+            </Link>
+          </div>
         </div>
       </header>
 

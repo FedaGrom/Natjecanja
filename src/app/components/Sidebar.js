@@ -63,13 +63,14 @@ export default function Sidebar({ isOpen, onToggle, className = "" }) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed left-0 top-16 h-[calc(100vh-64px)] w-80 bg-white/95 backdrop-blur-sm border-r border-gray-200 shadow-lg overflow-auto z-40
+        fixed left-0 top-20 h-[calc(100vh-80px)] w-80 bg-white/95 backdrop-blur-sm border-r border-gray-200 shadow-lg z-40
         transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         ${className}
       `}>
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
+        {/* Sticky header */}
+        <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 p-4 z-10">
+          <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-[#36b977]">Natjecanja</h3>
             <Link
               href="/natjecanja"
@@ -78,6 +79,10 @@ export default function Sidebar({ isOpen, onToggle, className = "" }) {
               Vidi sve
             </Link>
           </div>
+        </div>
+        
+        {/* Scrollable content */}
+        <div className="overflow-auto h-full p-4 pt-0">
           
           {loading ? (
             <div className="flex items-center justify-center py-8">

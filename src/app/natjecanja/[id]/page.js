@@ -21,6 +21,9 @@ export default function DetaljiNatjecanja() {
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Check if user can edit (admin or creator)
+  const canEdit = isAdmin || (user && natjecanje && natjecanje.createdBy === user.email);
+
   // Function to get gradient style for category
   const getCategoryGradient = (kategorija) => {
     const categoryGradientMap = {
@@ -214,12 +217,22 @@ export default function DetaljiNatjecanja() {
       />
 
       {/* Header */}
-      <header className="w-full bg-[#666] shadow-md border-b border-gray-200">
+      <header className="sticky top-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
+            <img
+              src="/slike/logo.jpg.png"
+              alt="Logo"
+              width={48}
+              height={48}
+              className="rounded border-2 border-gray-300 shadow bg-white"
+            />
             <Link href="/natjecanja">
-              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
-                ← Natrag
+              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                Početna
               </button>
             </Link>
             <div className="flex flex-col">
@@ -232,11 +245,11 @@ export default function DetaljiNatjecanja() {
             </div>
           </div>
           
-          <h1 className="text-2xl font-bold text-white">
-            Detalji natjecanja
+          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
+            DETALJI NATJECANJA
           </h1>
           
-          {isAdmin && (
+          {canEdit && (
             <div className="flex items-center gap-2">
               {editMode && (
                 <button
@@ -320,20 +333,20 @@ export default function DetaljiNatjecanja() {
             <div 
               key={block.id} 
               className={`relative group transition-all duration-200 ${
-                editMode && isAdmin ? 'cursor-move' : ''
+                editMode && canEdit ? 'cursor-move' : ''
               } ${
                 dragOverIndex === index ? 'border-t-4 border-[#36b977] pt-4' : ''
               } ${
                 draggedItem === index ? 'opacity-50 scale-95' : ''
               }`}
-              draggable={editMode && isAdmin}
+              draggable={editMode && canEdit}
               onDragStart={(e) => handleDragStart(e, index)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, index)}
               onDragEnd={handleDragEnd}
             >
-              {editMode && isAdmin && (
+              {editMode && canEdit && (
                 <>
                   {/* Drag handle */}
                   <div className="absolute -left-8 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -354,7 +367,7 @@ export default function DetaljiNatjecanja() {
               )}
               
               {block.type === 'title' && (
-                editMode && isAdmin ? (
+                editMode && canEdit ? (
                   <input
                     type="text"
                     value={block.content}
@@ -369,7 +382,7 @@ export default function DetaljiNatjecanja() {
               )}
               
               {block.type === 'subtitle' && (
-                editMode && isAdmin ? (
+                editMode && canEdit ? (
                   <input
                     type="text"
                     value={block.content}
@@ -384,7 +397,7 @@ export default function DetaljiNatjecanja() {
               )}
               
               {block.type === 'text' && (
-                editMode && isAdmin ? (
+                editMode && canEdit ? (
                   <textarea
                     value={block.content}
                     onChange={(e) => updateContentBlock(block.id, e.target.value)}
@@ -400,7 +413,7 @@ export default function DetaljiNatjecanja() {
           ))}
           
           {/* Drop zone at the end */}
-          {editMode && isAdmin && contentBlocks.length > 0 && (
+          {editMode && canEdit && contentBlocks.length > 0 && (
             <div 
               className={`h-12 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 transition-all duration-200 ${
                 dragOverIndex === contentBlocks.length ? 'border-[#36b977] bg-green-50' : ''
@@ -414,8 +427,8 @@ export default function DetaljiNatjecanja() {
           )}
         </div>
 
-        {/* Add content button (only visible to admins in edit mode) */}
-        {editMode && isAdmin && (
+        {/* Add content button (only visible to users who can edit in edit mode) */}
+        {editMode && canEdit && (
           <div className="mt-8 p-4 border-2 border-dashed border-gray-300 rounded-lg">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <span className="text-gray-600 font-medium">Dodaj novi sadržaj:</span>
