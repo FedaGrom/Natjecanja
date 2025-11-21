@@ -4,15 +4,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import { db, auth } from "../../firebase/config";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDocs, getDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import Swal from 'sweetalert2';
 
 // Force this page to be rendered on client-side only
 export const dynamic = 'force-dynamic';
 
 export default function AdminPanel() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, refreshAdminStatus } = useAuth();
   const [activeTab, setActiveTab] = useState('registrations');
   
   // Zahtjevi za registraciju
@@ -24,6 +25,11 @@ export default function AdminPanel() {
   const [natjecanja, setNatjecanja] = useState([]);
   const [loadingNatjecanja, setLoadingNatjecanja] = useState(true);
   const [natjecanjaFilter, setNatjecanjaFilter] = useState('pending');
+  
+  // Korisnici i admini
+  const [users, setUsers] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   
   const router = useRouter();
 
@@ -71,6 +77,121 @@ export default function AdminPanel() {
         }
       );
 
+      // Load users and admins
+      const loadUsersAndAdmins = async () => {
+        try {
+          console.log('Loading users and admins...');
+          
+          // Try to load from multiple potential user collections
+          let allUsers = [];
+          
+          // 1. Load from registrationRequests (approved users)
+          try {
+            const registrationQuery = query(collection(db, 'registrationRequests'));
+            const registrationSnapshot = await getDocs(registrationQuery);
+            const registrationUsers = registrationSnapshot.docs.map(doc => ({ 
+              id: doc.id, 
+              source: 'registrationRequests',
+              ...doc.data() 
+            }));
+            allUsers = [...allUsers, ...registrationUsers];
+            console.log('Found users in registrationRequests:', registrationUsers.length);
+          } catch (error) {
+            console.log('No registrationRequests collection found:', error);
+          }
+
+          // 2. Try to load from 'users' collection if it exists
+          try {
+            const usersQuery = query(collection(db, 'users'));
+            const usersSnapshot = await getDocs(usersQuery);
+            const directUsers = usersSnapshot.docs.map(doc => ({ 
+              id: doc.id, 
+              source: 'users',
+              uid: doc.id, // In users collection, doc ID is usually the UID
+              ...doc.data() 
+            }));
+            allUsers = [...allUsers, ...directUsers];
+            console.log('Found users in users collection:', directUsers.length);
+          } catch (error) {
+            console.log('No users collection found:', error);
+          }
+
+          console.log('ALL users from all sources:', allUsers);
+          
+          // Remove duplicates (prefer 'users' collection over 'registrationRequests')
+          const uniqueUsers = allUsers.reduce((acc, user) => {
+            const existingIndex = acc.findIndex(existing => 
+              existing.email === user.email || 
+              existing.uid === user.uid ||
+              existing.userId === user.uid
+            );
+            
+            if (existingIndex === -1) {
+              acc.push(user);
+            } else if (user.source === 'users' && acc[existingIndex].source === 'registrationRequests') {
+              // Prefer users collection over registrationRequests
+              acc[existingIndex] = user;
+            }
+            
+            return acc;
+          }, []);
+
+          console.log('Unique users after deduplication:', uniqueUsers);
+          
+          // Separate by status and prepare for display
+          const activeUsers = uniqueUsers.filter(user => 
+            // Include all users from 'users' collection, and approved users from registrationRequests
+            user.source === 'users' || 
+            (user.source === 'registrationRequests' && user.status === 'approved')
+          );
+          
+          // Format users for display
+          const usersList = activeUsers.map(user => ({
+            ...user,
+            uid: user.uid || user.userId || user.id, // Ensure we have a UID field
+            email: user.email,
+            ime: user.ime || user.firstName || user.displayName?.split(' ')[0] || 'N/A',
+            prezime: user.prezime || user.lastName || user.displayName?.split(' ')[1] || '',
+            createdAt: user.createdAt || user.requestedAt || user.registracija || new Date(),
+            approvedAt: user.processedAt || user.updatedAt || user.approvedAt
+          }));
+          
+          // Load admins - document ID is the UID
+          const adminsQuery = query(collection(db, 'admins'));
+          const adminsSnapshot = await getDocs(adminsQuery);
+          const adminsList = adminsSnapshot.docs.map(doc => ({ 
+            uid: doc.id,  // Document ID is the UID
+            ...doc.data() 
+          }));
+
+          // Match admin UIDs with user data where possible
+          const enrichedAdmins = adminsList.map(admin => {
+            // Find user data if available
+            const userData = usersList.find(user => user.uid === admin.uid);
+            return {
+              ...admin,
+              email: admin.email || userData?.email || 'N/A',
+              name: userData ? `${userData.ime} ${userData.prezime}`.trim() : null
+            };
+          });
+
+          setUsers(usersList);
+          setAdmins(enrichedAdmins);
+          setLoadingUsers(false);
+          console.log('Final users and admins loaded:', { 
+            users: usersList.length, 
+            admins: enrichedAdmins.length,
+            usersList,
+            adminsList: enrichedAdmins
+          });
+        } catch (error) {
+          console.error('Error loading users and admins:', error);
+          setLoadingUsers(false);
+        }
+      };
+
+      loadUsersAndAdmins();
+
       return () => {
         unsubRegistration();
         unsubNatjecanja();
@@ -108,6 +229,18 @@ export default function AdminPanel() {
         // Create Firebase user with email and password
         const userCredential = await createUserWithEmailAndPassword(auth, zahtjev.email, zahtjev.password);
         
+        // Add user to 'users' collection in Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          email: zahtjev.email,
+          ime: zahtjev.ime,
+          prezime: zahtjev.prezime,
+          razred: zahtjev.razred || '',
+          registracija: new Date(),
+          approvedAt: new Date(),
+          approvedBy: user.email,
+          uid: userCredential.user.uid
+        });
+        
         // Update request status to approved
         await updateDoc(doc(db, 'registrationRequests', zahtjev.id), {
           status: 'approved',
@@ -117,9 +250,12 @@ export default function AdminPanel() {
 
         await Swal.fire(
           'Odobreno!',
-          'Korisnik je uspješno registriran.',
+          'Korisnik je uspješno registriran i dodan u bazu.',
           'success'
         );
+        
+        // Reload users data to show the new user
+        window.location.reload();
       } catch (error) {
         console.error('Error approving registration:', error);
         let errorMessage = 'Dogodila se greška prilikom odobravanja zahtjeva.';
@@ -211,6 +347,83 @@ export default function AdminPanel() {
           'Dogodila se greška prilikom brisanja zahtjeva.',
           'error'
         );
+      }
+    }
+  };
+
+  // Admin management functions
+  const handleMakeAdmin = async (userEmail, userId) => {
+    const result = await Swal.fire({
+      title: 'Dodijeli admin prava?',
+      html: `
+        <p>Želite dati admin prava korisniku:</p>
+        <p><strong>${userEmail}</strong></p>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#36b977',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Da, dodijeli',
+      cancelButtonText: 'Odustani'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        // Use existing structure: document ID = UID, simple role field
+        await setDoc(doc(db, 'admins', userId), {
+          role: 'admin',
+          email: userEmail, // Store email for reference
+          assignedBy: user.email,
+          assignedAt: new Date().toISOString()
+        });
+
+        await Swal.fire('Uspjeh!', 'Admin prava su uspješno dodijeljena.', 'success');
+        
+        // Refresh admin status for all users and reload data
+        if (refreshAdminStatus) {
+          await refreshAdminStatus();
+        }
+        window.location.reload();
+      } catch (error) {
+        console.error('Error making user admin:', error);
+        await Swal.fire('Greška!', 'Dogodila se greška prilikom dodjeljivanja admin prava.', 'error');
+      }
+    }
+  };
+
+  const handleRemoveAdmin = async (adminUid, adminEmail) => {
+    if (adminUid === user.uid) {
+      await Swal.fire('Greška!', 'Ne možete ukloniti admin prava sebi.', 'error');
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: 'Ukloni admin prava?',
+      html: `
+        <p>Želite ukloniti admin prava korisniku:</p>
+        <p><strong>${adminEmail}</strong></p>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Da, ukloni',
+      cancelButtonText: 'Odustani'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(db, 'admins', adminUid));
+        await Swal.fire('Uspjeh!', 'Admin prava su uspješno uklonjena.', 'success');
+        
+        // Refresh admin status for all users and reload data
+        if (refreshAdminStatus) {
+          await refreshAdminStatus();
+        }
+        window.location.reload();
+      } catch (error) {
+        console.error('Error removing admin:', error);
+        await Swal.fire('Greška!', 'Dogodila se greška prilikom uklanjanja admin prava.', 'error');
       }
     }
   };
@@ -401,6 +614,16 @@ export default function AdminPanel() {
             }`}
           >
             Natjecanja za odobravanje
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-6 py-3 font-semibold ${
+              activeTab === 'users'
+                ? 'text-[#36b977] border-b-2 border-[#36b977]'
+                : 'text-gray-600 hover:text-[#36b977]'
+            }`}
+          >
+            Korisnici i Admini
           </button>
         </div>
       </div>
@@ -695,6 +918,128 @@ export default function AdminPanel() {
                 </div>
               );
             })()}
+          </div>
+        )}
+
+        {/* Korisnici i Admini */}
+        {activeTab === 'users' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Upravljanje korisnicima i adminima</h2>
+              <p className="text-sm text-green-600 font-medium">✓ Vi ste admin i možete upravljati korisnicima</p>
+            </div>
+
+            {loadingUsers ? (
+              <div className="flex justify-center py-8">
+                <div className="text-lg text-gray-600">Učitavanje korisnika...</div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Admini */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                    Administratori ({admins.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {admins.length === 0 ? (
+                      <p className="text-gray-500 italic">Nema administratora</p>
+                    ) : (
+                      admins.map((admin) => (
+                        <div key={admin.uid} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                              <div>
+                                <p className="font-semibold text-gray-900">
+                                  {admin.name || admin.email || 'N/A'}
+                                  {admin.name && (
+                                    <span className="text-sm text-gray-500 ml-2">({admin.email})</span>
+                                  )}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Admin
+                                  {admin.assignedAt && (
+                                    <span className="ml-2">
+                                      • Dodijeljen: {new Date(admin.assignedAt).toLocaleDateString('hr-HR')}
+                                    </span>
+                                  )}
+                                  {admin.assignedBy && (
+                                    <span className="ml-2">• Od: {admin.assignedBy}</span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            {admin.uid !== user.uid && (
+                              <button
+                                onClick={() => handleRemoveAdmin(admin.uid, admin.email)}
+                                className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                              >
+                                Ukloni admin prava
+                              </button>
+                            )}
+                            {admin.uid === user.uid && (
+                              <span className="text-sm text-green-600 font-medium">To ste vi</span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Registrirani korisnici */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                    Registrirani korisnici ({users.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {users.length === 0 ? (
+                      <p className="text-gray-500 italic">Nema registriranih korisnika</p>
+                    ) : (
+                      users.map((korisnik) => {
+                        const isAdmin = admins.some(admin => admin.email === korisnik.email);
+                        return (
+                          <div key={korisnik.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full ${isAdmin ? 'bg-blue-500' : 'bg-green-500'}`}></div>
+                                <div>
+                                  <p className="font-semibold text-gray-900">
+                                    {korisnik.ime} {korisnik.prezime}
+                                    {isAdmin && <span className="ml-2 text-blue-600 font-medium">(Admin)</span>}
+                                  </p>
+                                  <p className="text-sm text-gray-600">{korisnik.email}</p>
+                                  <p className="text-xs text-gray-500">
+                                    Registriran: {new Date(korisnik.createdAt).toLocaleDateString('hr-HR')}
+                                    {korisnik.approvedAt && (
+                                      <span className="ml-2">
+                                        • Odobren: {new Date(korisnik.approvedAt).toLocaleDateString('hr-HR')}
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              {!isAdmin && (
+                                <button
+                                  onClick={() => handleMakeAdmin(korisnik.email, korisnik.uid)}
+                                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                                >
+                                  Napravi admin
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

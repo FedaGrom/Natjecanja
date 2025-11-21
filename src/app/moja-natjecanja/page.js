@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import { db } from "../../firebase/config";
-import { collection, query, where, orderBy, onSnapshot, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import Sidebar from "../components/Sidebar";
 import Swal from 'sweetalert2';
 
@@ -14,35 +14,76 @@ export default function MojaNatjecanja() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [filter, setFilter] = useState('all'); // all, draft, pending, published, rejected
 
+  console.log('MojaNatjecanja: Component rendered with:', { 
+    user: user?.email || 'null', 
+    authLoading, 
+    loading, 
+    natjecanjaCount: natjecanja.length 
+  });
+
   useEffect(() => {
+    console.log('MojaNatjecanja: Auth state:', { user: user?.email, authLoading });
+    
     if (!user && !authLoading) {
+      console.log('MojaNatjecanja: No user and not loading, redirecting to login');
       window.location.href = '/login';
       return;
     }
 
-    if (!user) return;
+    if (!user) {
+      console.log('MojaNatjecanja: No user but still loading auth');
+      return;
+    }
+
+    console.log('MojaNatjecanja: Setting up query for user:', user.email);
+
+    // Debug: Let's also check all competitions to see what createdBy fields look like
+    const debugQuery = query(collection(db, 'natjecanja'));
+    const debugUnsub = onSnapshot(debugQuery, 
+      (snapshot) => {
+        console.log('DEBUG: All competitions in database:');
+        snapshot.docs.forEach(doc => {
+          const data = doc.data();
+          console.log(`- ID: ${doc.id}, createdBy: "${data.createdBy}", email match: ${data.createdBy === user.email}`);
+        });
+      }
+    );
 
     // Load user's competitions
     const q = query(
       collection(db, 'natjecanja'), 
-      where('createdBy', '==', user.email),
-      orderBy('createdAt', 'desc')
+      where('createdBy', '==', user.email)
+      // Note: orderBy removed temporarily due to index requirement
     );
     
     const unsub = onSnapshot(q, 
       (snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('User competitions loaded:', items);
+        console.log('MojaNatjecanja: Raw snapshot received:', snapshot.size, 'documents');
+        console.log('MojaNatjecanja: Snapshot docs:', snapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          data: doc.data() 
+        })));
+        
+        const items = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort on client side
+        
+        console.log('MojaNatjecanja: Processed items:', items);
+        console.log('MojaNatjecanja: User email for comparison:', user.email);
+        
         setNatjecanja(items);
         setLoading(false);
       }, 
       (err) => {
-        console.error('Error loading user competitions:', err);
+        console.error('MojaNatjecanja: Error loading user competitions:', err);
         setNatjecanja([]);
         setLoading(false);
       }
     );
-    return () => unsub();
+    return () => {
+      unsub();
+      debugUnsub(); // Clean up debug subscription
+    };
   }, [user, authLoading]);
 
   const handleDelete = async (natjecanje) => {
@@ -130,7 +171,7 @@ export default function MojaNatjecanja() {
     if (filter === 'published') return natjecanje.status === 'published';
     if (filter === 'pending') return natjecanje.status === 'pending';
     if (filter === 'rejected') return natjecanje.status === 'rejected';
-    if (filter === 'draft') return natjecanje.status === 'draft';
+    if (filter === 'draft') return natjecanje.status === 'draft' || !natjecanje.status;
     return true;
   });
 
@@ -196,19 +237,34 @@ export default function MojaNatjecanja() {
               { key: 'published', label: 'Objavljena' },
               { key: 'rejected', label: 'Odbačena' },
               { key: 'draft', label: 'Draft' }
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                  filter === tab.key 
-                    ? 'bg-[#36b977] text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {tab.label} ({natjecanja.filter(n => tab.key === 'all' || (tab.key === 'published' ? n.status === 'published' : n.status !== 'published')).length})
-              </button>
-            ))}
+            ].map(tab => {
+              let count = 0;
+              if (tab.key === 'all') {
+                count = natjecanja.length;
+              } else if (tab.key === 'pending') {
+                count = natjecanja.filter(n => n.status === 'pending').length;
+              } else if (tab.key === 'published') {
+                count = natjecanja.filter(n => n.status === 'published').length;
+              } else if (tab.key === 'rejected') {
+                count = natjecanja.filter(n => n.status === 'rejected').length;
+              } else if (tab.key === 'draft') {
+                count = natjecanja.filter(n => n.status === 'draft' || !n.status).length;
+              }
+
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                    filter === tab.key 
+                      ? 'bg-[#36b977] text-white' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {tab.label} ({count})
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -223,7 +279,7 @@ export default function MojaNatjecanja() {
             <div className="text-sm text-gray-600">Objavljenih</div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-yellow-600">{natjecanja.filter(n => n.status !== 'published').length}</div>
+            <div className="text-2xl font-bold text-yellow-600">{natjecanja.filter(n => n.status === 'draft' || !n.status).length}</div>
             <div className="text-sm text-gray-600">Draft</div>
           </div>
         </div>

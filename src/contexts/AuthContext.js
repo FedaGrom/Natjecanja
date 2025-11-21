@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "../firebase/config";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 
 const AuthContext = createContext({});
 
@@ -11,39 +11,81 @@ export function AuthProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Function to refresh admin status
+  const refreshAdminStatus = async (currentUser = user) => {
+    if (!currentUser || !currentUser.uid) {
+      setIsAdmin(false);
+      return;
+    }
+
+    try {
+      const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid));
+      if (adminDoc.exists()) {
+        const adminData = adminDoc.data();
+        const userIsAdmin = adminData.role === 'admin';
+        console.log('AuthContext: Refreshed admin status for UID:', currentUser.uid, 'result:', userIsAdmin);
+        setIsAdmin(userIsAdmin);
+        return userIsAdmin;
+      } else {
+        console.log('AuthContext: No admin document found for UID:', currentUser.uid);
+        setIsAdmin(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('AuthContext: Error refreshing admin status:', error);
+      setIsAdmin(false);
+      return false;
+    }
+  };
+
   useEffect(() => {
     console.log('AuthContext: Setting up auth listener');
+    let adminUnsubscribe = null;
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('AuthContext: Auth state changed:', user?.email || 'No user');
-      console.log('AuthContext: User object:', user);
       setUser(user);
       
-      // Check if user is admin by looking in Firestore admins collection
-      let userIsAdmin = false;
-      if (user && user.uid) {
-        try {
-          const adminDoc = await getDoc(doc(db, 'admins', user.uid));
-          if (adminDoc.exists()) {
-            const adminData = adminDoc.data();
-            userIsAdmin = adminData.role === 'admin';
-            console.log('AuthContext: Checking admin status in Firestore for UID:', user.uid, 'data:', adminData, 'result:', userIsAdmin);
-          } else {
-            console.log('AuthContext: No admin document found for UID:', user.uid);
-          }
-        } catch (error) {
-          console.error('AuthContext: Error checking admin status:', error);
-          userIsAdmin = false;
-        }
+      // Clean up previous admin listener
+      if (adminUnsubscribe) {
+        adminUnsubscribe();
+        adminUnsubscribe = null;
       }
       
-      console.log('AuthContext: Checking admin status for UID:', user?.uid, 'email:', user?.email, 'result:', userIsAdmin);
-      setIsAdmin(userIsAdmin);
+      if (user && user.uid) {
+        // Set up real-time listener for admin status
+        adminUnsubscribe = onSnapshot(
+          doc(db, 'admins', user.uid),
+          (doc) => {
+            if (doc.exists()) {
+              const adminData = doc.data();
+              const userIsAdmin = adminData.role === 'admin';
+              console.log('AuthContext: Admin status updated via listener:', userIsAdmin);
+              setIsAdmin(userIsAdmin);
+            } else {
+              console.log('AuthContext: Admin document does not exist');
+              setIsAdmin(false);
+            }
+          },
+          (error) => {
+            console.error('AuthContext: Error in admin listener:', error);
+            setIsAdmin(false);
+          }
+        );
+      } else {
+        setIsAdmin(false);
+      }
       
       setLoading(false);
-      console.log('AuthContext: State updated - loading: false, user:', user?.email, 'isAdmin:', userIsAdmin);
+      console.log('AuthContext: State updated - loading: false, user:', user?.email);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      if (adminUnsubscribe) {
+        adminUnsubscribe();
+      }
+    };
   }, []);
 
   const logout = async () => {
@@ -61,6 +103,7 @@ export function AuthProvider({ children }) {
     isAdmin,
     loading,
     logout,
+    refreshAdminStatus, // Export this function so it can be called from other components
   };
 
   console.log('AuthContext: Rendering with state:', { 
