@@ -76,7 +76,7 @@ export default function AdminZahtjevi() {
           html: `
             <p>Korisnik je uspješno registriran.</p>
             <p><strong>Privremena lozinka:</strong> ${tempPassword}</p>
-            <p><small>Obavijestite korisnika o privremnoj lozinki putem email-a.</small></p>
+            <p><small><strong>Važno:</strong> Obavijestite korisnika putem email-a o odobrenju registracije i privremnoj lozinki.</small></p>
           `,
           confirmButtonText: 'U redu'
         });
@@ -130,9 +130,13 @@ export default function AdminZahtjevi() {
         await Swal.fire({
           icon: 'success',
           title: 'Zahtjev odbačen',
-          text: 'Zahtjev je uspješno odbačen.',
-          timer: 2000,
-          showConfirmButton: false
+          html: `
+            <p>Zahtjev je uspješno odbačen.</p>
+            <p><small>Ne zaboravite obavijestiti korisnika o odbacivanju zahtjeva putem email-a.</small>
+          `,
+          timer: 3000,
+          showConfirmButton: true,
+          confirmButtonText: 'U redu'
         });
 
       } catch (error) {
@@ -266,6 +270,24 @@ export default function AdminZahtjevi() {
 
       {/* Main content */}
       <div className="max-w-6xl mx-auto p-6">
+        {/* Info box */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="text-blue-600 flex-shrink-0">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">Važna napomena</h3>
+              <p className="text-blue-700">
+                Sistem ne šalje email-ove automatski. Nakon odobravanja ili odbacivanja zahtjeva, 
+                <strong> obavezno je ručno obavijestiti korisnika putem email-a</strong> o statusu njihovog zahtjeva.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Filter tabs */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex flex-wrap gap-2">

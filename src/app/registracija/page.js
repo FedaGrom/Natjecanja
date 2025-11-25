@@ -76,7 +76,8 @@ export default function Registracija() {
         title: 'Zahtjev poslan!',
         html: `
           <p>Vaš zahtjev za registraciju je uspješno poslan.</p>
-          <p>Administrator će pregledati vaš zahtjev i obavijestiti vas putem email-a.</p>
+          <p>Administrator će pregledati vaš zahtjev u administratorskom panelu.</p>
+          <p>Za informacije o statusu zahtjeva, obratite se svojem profesoru informatike.</p>
           <p><strong>Email:</strong> ${formData.email}</p>
         `,
         confirmButtonText: 'U redu'
@@ -293,8 +294,8 @@ export default function Registracija() {
                 <div className="text-sm text-blue-700">
                   <p className="font-medium mb-1">Napomena:</p>
                   <p>
-                    Vaš zahtjev će biti pregledan od strane administratora. 
-                    Bit ćete obavješteni putem email-a o odluci u roku od 2-3 radna dana.
+                    Vaš zahtjev će biti pregledan od strane administratora u administratorskom panelu. 
+                    Za informacije o statusu zahtjeva, obratite se svojem profesoru informatike.
                   </p>
                 </div>
               </div>
