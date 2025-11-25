@@ -74,7 +74,7 @@ export default function KreacijaNatjecanja() {
         gradientStyle: gradientStyle || null,
         createdAt: new Date().toISOString(),
         createdBy: user.email,
-        status: 'pending', // Nova natjecanja čekaju odobravanje admina
+        status: 'draft', // Nova natjecanja se kreiraju kao draft
         timestamp: Date.now()
       };
       console.log('Attempting to save to Firestore:', docData);
@@ -86,10 +86,10 @@ export default function KreacijaNatjecanja() {
       // Show success popup with options
       const result = await Swal.fire({
         icon: 'success',
-        title: 'Zahtjev poslan!',
+        title: 'Natjecanje kreirano!',
         html: `
-          <p>Zahtjev za natjecanje "${naziv}" je uspješno poslan administratoru.</p>
-          <p><small>Administrator će pregledati i odobriti vaš zahtjev.</small></p>
+          <p>Natjecanje "${naziv}" je uspješno kreirano kao draft.</p>
+          <p><small>Možete ga pregledati u "Moja natjecanja" i poslati administratoru na odobravanje.</small></p>
         `,
         showCancelButton: true,
         confirmButtonText: 'Idi na moja natjecanja',

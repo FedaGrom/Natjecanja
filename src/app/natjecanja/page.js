@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { db } from "../../firebase/config";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
@@ -8,6 +9,7 @@ import Sidebar from "../components/Sidebar";
 import Swal from 'sweetalert2';
 
 export default function Natjecanja() {
+  const router = useRouter();
   const [selected, setSelected] = useState("");
   const [godina, setGodina] = useState("");
   const [search, setSearch] = useState("");
@@ -83,8 +85,8 @@ export default function Natjecanja() {
       // Open custom link in new tab
       window.open(natjecanje.prijavaLink, '_blank');
     } else {
-      // Default behavior - could be internal registration system
-      alert('Funkcionalnost prijave će biti implementirana uskoro.');
+      // Redirect to application form
+      router.push(`/natjecanja/${natjecanje.id}/prijava`);
     }
   };
 

@@ -1,0 +1,438 @@
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { db, auth } from "../../../firebase/config";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, where } from "firebase/firestore";
+import { useAuth } from "../../../contexts/AuthContext";
+import Swal from 'sweetalert2';
+
+export default function AdminPrijave() {
+  const { user, isAdmin, loading } = useAuth();
+  const [prijave, setPrijave] = useState([]);
+  const [loadingApplications, setLoadingApplications] = useState(true);
+  const [filter, setFilter] = useState('pending'); // pending, approved, rejected, all
+  const [selectedNatjecanje, setSelectedNatjecanje] = useState('all'); // all or specific competition
+
+  useEffect(() => {
+    if (!isAdmin && !loading) {
+      // Redirect non-admin users
+      window.location.href = '/natjecanja';
+      return;
+    }
+
+    // Load applications
+    const q = query(collection(db, 'prijave'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, 
+      (snapshot) => {
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Applications loaded:', items);
+        setPrijave(items);
+        setLoadingApplications(false);
+      }, 
+      (err) => {
+        console.error('Error loading applications:', err);
+        setPrijave([]);
+        setLoadingApplications(false);
+      }
+    );
+    return () => unsub();
+  }, [isAdmin, loading]);
+
+  const handleApprove = async (prijava) => {
+    const result = await Swal.fire({
+      title: 'Odobri prijavu?',
+      html: `
+        <p>Odobravate prijavu za:</p>
+        <p><strong>${prijava.ime} ${prijava.prezime}</strong></p>
+        <p><strong>Email:</strong> ${prijava.email}</p>
+        <p><strong>Natjecanje:</strong> ${prijava.natjecanjeNaziv}</p>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#36b977',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Da, odobri',
+      cancelButtonText: 'Odustani'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        // Update application status
+        await updateDoc(doc(db, 'prijave', prijava.id), {
+          status: 'approved',
+          approvedAt: new Date().toISOString(),
+          approvedBy: user.email
+        });
+
+        await Swal.fire({
+          icon: 'success',
+          title: 'Prijava odobrena!',
+          html: `
+            <p>Prijava je uspješno odobrena.</p>
+            <p><small><strong>Važno:</strong> Obavijestite korisnika putem email-a o odobrenju prijave na natjecanje.</small></p>
+          `,
+          confirmButtonText: 'U redu'
+        });
+
+      } catch (error) {
+        console.error('Error approving application:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Greška',
+          text: 'Dogodila se greška prilikom odobravanja prijave.'
+        });
+      }
+    }
+  };
+
+  const handleReject = async (prijava) => {
+    const result = await Swal.fire({
+      title: 'Odbaci prijavu?',
+      html: `
+        <p>Odbacujete prijavu za:</p>
+        <p><strong>${prijava.ime} ${prijava.prezime}</strong></p>
+        <p><strong>Email:</strong> ${prijava.email}</p>
+        <p><strong>Natjecanje:</strong> ${prijava.natjecanjeNaziv}</p>
+      `,
+      icon: 'warning',
+      input: 'textarea',
+      inputPlaceholder: 'Razlog odbacivanja (opcionalno)',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Da, odbaci',
+      cancelButtonText: 'Odustani'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await updateDoc(doc(db, 'prijave', prijava.id), {
+          status: 'rejected',
+          rejectedAt: new Date().toISOString(),
+          rejectionReason: result.value || '',
+          rejectedBy: user.email
+        });
+
+        await Swal.fire({
+          icon: 'success',
+          title: 'Prijava odbačena',
+          html: `
+            <p>Prijava je uspješno odbačena.</p>
+            <p><small>Ne zaboravite obavijestiti korisnika o odbacivanju prijave putem email-a.</small>
+          `,
+          timer: 3000,
+          showConfirmButton: true,
+          confirmButtonText: 'U redu'
+        });
+
+      } catch (error) {
+        console.error('Error rejecting application:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Greška',
+          text: 'Dogodila se greška prilikom odbacivanja prijave.'
+        });
+      }
+    }
+  };
+
+  const handleDelete = async (prijava) => {
+    const result = await Swal.fire({
+      title: 'Obriši prijavu?',
+      html: `
+        <p>Brisanje prijave za:</p>
+        <p><strong>${prijava.ime} ${prijava.prezime}</strong></p>
+        <p><strong>Email:</strong> ${prijava.email}</p>
+        <p><strong>Natjecanje:</strong> ${prijava.natjecanjeNaziv}</p>
+        <p><small>Ova akcija se ne može poništiti.</small></p>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Da, obriši',
+      cancelButtonText: 'Odustani'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(db, 'prijave', prijava.id));
+        
+        await Swal.fire({
+          icon: 'success',
+          title: 'Prijava obrisana',
+          text: 'Prijava je uspješno obrisana.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+      } catch (error) {
+        console.error('Error deleting application:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Greška',
+          text: 'Dogodila se greška prilikom brisanja prijave.'
+        });
+      }
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const statusInfo = {
+      pending: { text: 'Na čekanju', class: 'bg-yellow-100 text-yellow-800' },
+      approved: { text: 'Odobreno', class: 'bg-green-100 text-green-800' },
+      rejected: { text: 'Odbačeno', class: 'bg-red-100 text-red-800' }
+    };
+
+    const info = statusInfo[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+    
+    return (
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${info.class}`}>
+        {info.text}
+      </span>
+    );
+  };
+
+  // Get unique competitions for filter
+  const uniqueNatjecanja = [...new Set(prijave.map(p => p.natjecanjeNaziv))];
+
+  const filteredPrijave = prijave.filter(prijava => {
+    const statusMatch = filter === 'all' || prijava.status === filter;
+    const natjecanjeMatch = selectedNatjecanje === 'all' || prijava.natjecanjeNaziv === selectedNatjecanje;
+    return statusMatch && natjecanjeMatch;
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Učitavanje...</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-red-500">Nemate dozvolu za pristup ovoj stranici</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="sticky top-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-4">
+            <img
+              src="/slike/logo.jpg.png"
+              alt="Logo"
+              width={48}
+              height={48}
+              className="rounded border-2 border-gray-300 shadow bg-white"
+            />
+            <Link href="/admin">
+              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
+                ← Admin panel
+              </button>
+            </Link>
+            <div className="flex flex-col">
+              <span className="text-base font-bold text-white">
+                III. gimnazija, Split
+              </span>
+              <span className="text-sm text-white">
+                Prijave na natjecanja
+              </span>
+            </div>
+          </div>
+          
+          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl lg:text-2xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
+            PRIJAVE NA NATJECANJA
+          </h1>
+          
+          <Link href="/natjecanja">
+            <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+              </svg>
+              Početna
+            </button>
+          </Link>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <div className="max-w-6xl mx-auto p-6">
+        {/* Info box */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="text-blue-600 flex-shrink-0">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">Važna napomena</h3>
+              <p className="text-blue-700">
+                Sistem ne šalje email-ove automatski. Nakon odobravanja ili odbacivanja prijave, 
+                <strong> obavezno je ručno obavijestiti korisnika putem email-a</strong> o statusu njihove prijave na natjecanje.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Status filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Filtriraj po statusu:</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'pending', label: 'Na čekanju' },
+                  { key: 'approved', label: 'Odobreno' },
+                  { key: 'rejected', label: 'Odbačeno' },
+                  { key: 'all', label: 'Sve prijave' }
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setFilter(tab.key)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                      filter === tab.key 
+                        ? 'bg-[#36b977] text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {tab.label} ({prijave.filter(p => tab.key === 'all' || p.status === tab.key).length})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Competition filter */}
+            <div>
+              <label htmlFor="natjecanje-filter" className="block text-sm font-medium text-gray-700 mb-2">
+                Filtriraj po natjecanju:
+              </label>
+              <select
+                id="natjecanje-filter"
+                value={selectedNatjecanje}
+                onChange={(e) => setSelectedNatjecanje(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
+              >
+                <option value="all">Sva natjecanja</option>
+                {uniqueNatjecanja.map(naziv => (
+                  <option key={naziv} value={naziv}>{naziv}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Applications list */}
+        {loadingApplications ? (
+          <div className="text-center py-12">
+            <div className="text-lg text-gray-600">Učitavanje prijava...</div>
+          </div>
+        ) : filteredPrijave.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <div className="text-gray-500 text-lg">
+              {prijave.length === 0 ? 'Nema prijava' : 'Nema prijava s odabranim filterom'}
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {filteredPrijave.map(prijava => (
+              <div key={prijava.id} className="bg-white rounded-lg shadow-sm border-2 border-gray-100 p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Application info */}
+                  <div className="lg:col-span-2">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-800">
+                          {prijava.ime} {prijava.prezime}
+                        </h3>
+                        <p className="text-lg text-[#36b977] font-medium">{prijava.natjecanjeNaziv}</p>
+                      </div>
+                      {getStatusBadge(prijava.status)}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                      <div>
+                        <p><strong>Email:</strong> {prijava.email}</p>
+                        <p><strong>Razred:</strong> {prijava.razred || 'Nije navedeno'}</p>
+                        {prijava.kontakt && (
+                          <p><strong>Kontakt:</strong> {prijava.kontakt}</p>
+                        )}
+                      </div>
+                      <div>
+                        <p><strong>Datum prijave:</strong> {new Date(prijava.createdAt).toLocaleDateString('hr-HR')}</p>
+                        {prijava.approvedBy && (
+                          <p><strong>Odobrio:</strong> {prijava.approvedBy}</p>
+                        )}
+                        {prijava.rejectedBy && (
+                          <p><strong>Odbacio:</strong> {prijava.rejectedBy}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {prijava.dodatneInformacije && (
+                      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm font-medium text-gray-700">Dodatne informacije:</p>
+                        <p className="text-sm text-gray-600">{prijava.dodatneInformacije}</p>
+                      </div>
+                    )}
+
+                    {prijava.rejectionReason && (
+                      <div className="mt-4 p-3 bg-red-50 rounded-lg">
+                        <p className="text-sm font-medium text-red-700">Razlog odbacivanja:</p>
+                        <p className="text-sm text-red-600">{prijava.rejectionReason}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col gap-3">
+                    {prijava.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => handleApprove(prijava)}
+                          className="bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Odobri
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReject(prijava)}
+                          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Odbaci
+                        </button>
+                      </>
+                    )}
+                    
+                    <button
+                      onClick={() => handleDelete(prijava)}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Obriši
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

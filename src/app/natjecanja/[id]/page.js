@@ -84,7 +84,8 @@ export default function DetaljiNatjecanja() {
     if (natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink) {
       window.open(natjecanje.prijavaLink, '_blank');
     } else {
-      alert('Funkcionalnost prijave će biti implementirana uskoro.');
+      // Redirect to application form
+      router.push(`/natjecanja/${id}/prijava`);
     }
   };
 
