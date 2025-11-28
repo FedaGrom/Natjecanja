@@ -4,7 +4,6 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyC7djZYivfXwApeX6e1GNeeZ7weSFakaIE",
   authDomain: "sportska-trema.firebaseapp.com",
@@ -15,10 +14,35 @@ const firebaseConfig = {
   measurementId: "G-VB6DHKK1BF"
 };
 
-// Initialize Firebase only if no apps exist
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Initialize Firebase only if no apps exist (prevents re-initialization)
+let app;
+if (typeof window !== 'undefined' && getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else if (typeof window !== 'undefined') {
+  app = getApps()[0];
+}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Initialize services with lazy loading
+let authInstance, dbInstance;
+
+export const getAuthInstance = () => {
+  if (typeof window === 'undefined') return null;
+  if (!authInstance && app) {
+    authInstance = getAuth(app);
+  }
+  return authInstance;
+};
+
+export const getDbInstance = () => {
+  if (typeof window === 'undefined') return null;
+  if (!dbInstance && app) {
+    dbInstance = getFirestore(app);
+  }
+  return dbInstance;
+};
+
+// Export instances for backward compatibility
+export const auth = getAuthInstance();
+export const db = getDbInstance();
 
 export default app;
