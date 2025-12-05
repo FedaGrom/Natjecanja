@@ -19,19 +19,6 @@ export default function Natjecanja() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, isAdmin, loading, logout } = useAuth();
   
-  // Debug user state and log it to browser console
-  useEffect(() => {
-    console.log('=== NATJECANJA PAGE DEBUG ===');
-    console.log('User:', user);
-    console.log('Loading:', loading);
-    console.log('IsAdmin:', isAdmin);
-    console.log('Router:', router);
-    console.log('Natjecanja count:', natjecanja.length);
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('Window location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
-    console.log('=== END DEBUG ===');
-  }, [user, isAdmin, loading, router, natjecanja]);
-
   // Close mobile menus when clicking outside
   useEffect(() => {
     if (!isMenuOpen && !isFilterOpen) return;
@@ -320,18 +307,6 @@ export default function Natjecanja() {
         <h1 className="text-2xl font-extrabold text-[#36b977] text-center tracking-wide">
           NATJECANJA
         </h1>
-        {/* Debug navigation test */}
-        <div className="text-center mt-2 pb-2">
-          <button 
-            onClick={() => {
-              console.log('Test navigation clicked');
-              window.location.assign('/admin');
-            }}
-            className="bg-red-500 text-white px-2 py-1 rounded text-xs"
-          >
-            Test Nav
-          </button>
-        </div>
       </div>
 
       {/* Mobile filter dropdown */}
@@ -466,29 +441,10 @@ export default function Natjecanja() {
             filtriranaNatjecanja.map(natjecanje => (
               <div 
                 key={natjecanje.id} 
-                className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
-                onClick={() => {
-                  try {
-                    console.log('Card clicked for natjecanje:', natjecanje.id);
-                    console.log('Router object:', router);
-                    
-                    // Force hard navigation instead of soft navigation
-                    if (typeof window !== 'undefined') {
-                      const url = `/natjecanja/${natjecanje.id}`;
-                      console.log('Attempting navigation to:', url);
-                      window.location.assign(url);
-                    }
-                  } catch (error) {
-                    console.error('Navigation error:', error);
-                    // Final fallback
-                    const url = `/natjecanja/${natjecanje.id}`;
-                    console.log('Fallback navigation to:', url);
-                    window.open(url, '_self');
-                  }
-                }}
+                className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300"
               >
                 {/* Use gradient background instead of image */}
-                <div className="w-full flex justify-center mb-6">
+                <a href={`/natjecanja/${natjecanje.id}`} className="w-full flex justify-center mb-6 block">
                   {natjecanje.slika ? (
                     // Legacy support for existing competitions with images
                     <img
@@ -520,10 +476,12 @@ export default function Natjecanja() {
                       </div>
                     </div>
                   )}
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-[#666] mb-3 hover:text-[#36b977] transition-colors duration-200">
-                  {natjecanje.naziv}
-                </h3>
+                </a>
+                <a href={`/natjecanja/${natjecanje.id}`} className="inline-block">
+                  <h3 className="text-2xl md:text-3xl font-bold text-[#666] mb-3 hover:text-[#36b977] transition-colors duration-200">
+                    {natjecanje.naziv}
+                  </h3>
+                </a>
                 <span className="text-base md:text-xl text-[#36b977] mb-1">Datum: {natjecanje.datum}</span>
                 {natjecanje.kategorija && (
                   <span className="text-sm md:text-md text-[#666] mb-3">Kategorija: {natjecanje.kategorija}</span>
@@ -538,11 +496,7 @@ export default function Natjecanja() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      try {
-                        window.open(natjecanje.prijavaLink, '_blank');
-                      } catch (error) {
-                        console.error('Error opening external link:', error);
-                      }
+                      window.open(natjecanje.prijavaLink, '_blank');
                     }}
                     className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
                     title="Otvori vanjski link za prijavu"
@@ -553,28 +507,17 @@ export default function Natjecanja() {
                     Prijavi se
                   </button>
                 ) : (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      try {
-                        console.log('Prijava button clicked for:', natjecanje.id);
-                        const url = `/natjecanja/${natjecanje.id}/prijava`;
-                        console.log('Attempting navigation to prijava:', url);
-                        window.location.assign(url);
-                      } catch (error) {
-                        console.error('Navigation error:', error);
-                        window.open(`/natjecanja/${natjecanje.id}/prijava`, '_self');
-                      }
-                    }}
-                    className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
+                  <a
+                    href={`/natjecanja/${natjecanje.id}/prijava`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10 no-underline"
                     title="Prijavi se na natjecanje"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                     Prijavi se
-                  </button>
+                  </a>
                 )}
                 
                 {/* Admin controls */}
