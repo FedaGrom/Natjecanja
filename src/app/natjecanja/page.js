@@ -443,24 +443,19 @@ export default function Natjecanja() {
             filtriranaNatjecanja.map(natjecanje => (
               <div 
                 key={natjecanje.id} 
-                className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300"
-                onClick={(e) => {
-                  // Only prevent default if clicked directly on the card background
-                  // This allows Links inside to work normally
-                  if (e.target === e.currentTarget) {
-                    e.preventDefault();
+                className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
+                onClick={() => {
+                  try {
+                    console.log('Navigating to natjecanje:', natjecanje.id);
+                    router.push(`/natjecanja/${natjecanje.id}`);
+                  } catch (error) {
+                    console.error('Navigation error:', error);
+                    window.location.href = `/natjecanja/${natjecanje.id}`;
                   }
                 }}
               >
                 {/* Use gradient background instead of image */}
-                <Link 
-                  href={`/natjecanja/${natjecanje.id}`} 
-                  className="w-full flex justify-center mb-6 cursor-pointer block"
-                  prefetch={false}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
+                <div className="w-full flex justify-center mb-6">
                   {natjecanje.slika ? (
                     // Legacy support for existing competitions with images
                     <img
@@ -492,19 +487,10 @@ export default function Natjecanja() {
                       </div>
                     </div>
                   )}
-                </Link>
-                <Link 
-                  href={`/natjecanja/${natjecanje.id}`}
-                  className="inline-block"
-                  prefetch={false}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <span className="text-2xl md:text-3xl font-bold text-[#666] mb-3 cursor-pointer hover:text-[#36b977] transition-colors duration-200 block">
-                    {natjecanje.naziv}
-                  </span>
-                </Link>
+                </div>
+                <h3 className="text-2xl md:text-3xl font-bold text-[#666] mb-3 hover:text-[#36b977] transition-colors duration-200">
+                  {natjecanje.naziv}
+                </h3>
                 <span className="text-base md:text-xl text-[#36b977] mb-1">Datum: {natjecanje.datum}</span>
                 {natjecanje.kategorija && (
                   <span className="text-sm md:text-md text-[#666] mb-3">Kategorija: {natjecanje.kategorija}</span>
@@ -513,7 +499,7 @@ export default function Natjecanja() {
                   <p className="text-sm text-gray-600 mb-3 max-w-2xl">{natjecanje.opis}</p>
                 )}
 
-                {/* Registration link in bottom right corner */}
+                {/* Registration button in bottom right corner */}
                 {natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink ? (
                   <button
                     onClick={(e) => {
@@ -525,7 +511,7 @@ export default function Natjecanja() {
                         console.error('Error opening external link:', error);
                       }
                     }}
-                    className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                    className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
                     title="Otvori vanjski link za prijavu"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -534,31 +520,38 @@ export default function Natjecanja() {
                     Prijavi se
                   </button>
                 ) : (
-                  <Link
-                    href={`/natjecanja/${natjecanje.id}/prijava`}
-                    prefetch={false}
+                  <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      if (process.env.NODE_ENV === 'development') {
+                      try {
                         console.log('Navigating to prijava for:', natjecanje.id);
+                        router.push(`/natjecanja/${natjecanje.id}/prijava`);
+                      } catch (error) {
+                        console.error('Navigation error:', error);
+                        window.location.href = `/natjecanja/${natjecanje.id}/prijava`;
                       }
                     }}
-                    className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                    className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
                     title="Prijavi se na natjecanje"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                     Prijavi se
-                  </Link>
+                  </button>
                 )}
                 
                 {/* Admin controls */}
                 {isAdmin && (
                   <div className="absolute bottom-4 left-4 flex gap-2">
                     <button
-                      onClick={() => handleDeleteNatjecanje(natjecanje.id, natjecanje.naziv)}
-                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDeleteNatjecanje(natjecanje.id, natjecanje.naziv);
+                      }}
+                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
                       title="Obriši natjecanje"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
