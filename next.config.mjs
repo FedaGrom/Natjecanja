@@ -69,9 +69,9 @@ const nextConfig = {
   
   // Compiler optimizacije
   compiler: {
-    removeConsole: {
-      exclude: process.env.NODE_ENV === 'development' ? [] : ['error', 'warn']
-    },
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']
+    } : false,
   },
 };
 
