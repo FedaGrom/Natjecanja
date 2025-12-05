@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Optimizacije za brži build
+  // Osnovne optimizacije
   experimental: {
-    esmExternals: true,
-    optimizeCss: true,
     optimizePackageImports: ['firebase', 'sweetalert2'],
   },
   
@@ -27,34 +25,13 @@ const nextConfig = {
       crypto: false,
     };
 
-    // Optimizacije za bundle size
-    if (!dev && !isServer) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-      };
-      
+    // Optimizacije za bundle size samo u produkciji
+    if (!dev && !isServer) {      
       // Tree shaking optimizacije
       config.optimization = {
         ...config.optimization,
         usedExports: true,
         sideEffects: false,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-              priority: 10,
-            },
-            firebase: {
-              test: /[\\/]node_modules[\\/]firebase[\\/]/,
-              name: 'firebase',
-              chunks: 'all',
-              priority: 20,
-            },
-          },
-        },
       };
     }
     
@@ -63,9 +40,6 @@ const nextConfig = {
   
   // Output optimizacije za Vercel
   output: 'standalone',
-  
-  // Transpile optimizacije
-  transpilePackages: ['firebase'],
   
   // Compiler optimizacije
   compiler: {
