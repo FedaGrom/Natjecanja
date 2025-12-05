@@ -21,6 +21,18 @@ export default function DetaljiNatjecanja() {
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // General info form state (edit mode)
+  const [generalOpen, setGeneralOpen] = useState(true);
+  const [savingGeneral, setSavingGeneral] = useState(false);
+  const [form, setForm] = useState({
+    naziv: '',
+    datum: '',
+    kategorija: '',
+    opis: '',
+    tipPrijave: 'web',
+    prijavaLink: ''
+  });
+
   // Check if user can edit (admin or creator)
   const canEdit = isAdmin || (user && natjecanje && natjecanje.createdBy === user.email);
 
@@ -269,6 +281,71 @@ export default function DetaljiNatjecanja() {
     }
   };
 
+  // Sync form with loaded competition
+  useEffect(() => {
+    if (!natjecanje) return;
+    setForm({
+      naziv: natjecanje.naziv || '',
+      datum: natjecanje.datum || '',
+      kategorija: natjecanje.kategorija || '',
+      opis: natjecanje.opis || '',
+      tipPrijave: natjecanje.tipPrijave || 'web',
+      prijavaLink: natjecanje.prijavaLink || ''
+    });
+  }, [natjecanje]);
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const saveGeneralInfo = async () => {
+    if (!canEdit) return;
+    // Basic validation
+    if (!form.naziv.trim()) {
+      await Swal.fire({ icon: 'warning', title: 'Nedostaje naziv', text: 'Unesite naziv natjecanja.' });
+      return;
+    }
+    if (!form.datum.trim()) {
+      await Swal.fire({ icon: 'warning', title: 'Nedostaje datum', text: 'Unesite datum natjecanja.' });
+      return;
+    }
+    if (form.tipPrijave === 'custom' && !form.prijavaLink.trim()) {
+      await Swal.fire({ icon: 'warning', title: 'Nedostaje link za prijavu', text: 'Kod prilagođenog načina prijave link je obavezan.' });
+      return;
+    }
+
+    setSavingGeneral(true);
+    try {
+      // Compute gradient for known categories; otherwise keep existing
+      const known = ['SPORT', 'DRUŠTVENE IGRE TURNIR', 'KVIZOVI', 'GLAZBA', 'OSTALO'];
+      const newGradient = known.includes(form.kategorija)
+        ? (natjecanje?.gradientStyle || getCategoryGradient(form.kategorija))
+        : (natjecanje?.gradientStyle || null);
+
+      const updatePayload = {
+        naziv: form.naziv.trim(),
+        datum: form.datum.trim(),
+        kategorija: form.kategorija.trim(),
+        opis: form.opis?.trim() || null,
+        tipPrijave: form.tipPrijave,
+        prijavaLink: form.tipPrijave === 'custom' ? (form.prijavaLink.trim() || null) : null,
+        ...(newGradient ? { gradientStyle: newGradient } : {})
+      };
+
+      const ref = doc(db, 'natjecanja', id);
+      await updateDoc(ref, updatePayload);
+
+      setNatjecanje((prev) => ({ ...prev, ...updatePayload }));
+      await Swal.fire({ icon: 'success', title: 'Osnovni podaci spremljeni', timer: 1500, showConfirmButton: false });
+    } catch (error) {
+      console.error('Error saving general info:', error);
+      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće spremiti osnovne podatke.' });
+    } finally {
+      setSavingGeneral(false);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -321,10 +398,6 @@ export default function DetaljiNatjecanja() {
               </span>
             </div>
           </div>
-          
-          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-            DETALJI NATJECANJA
-          </h1>
           
           <div className="flex items-center gap-2">
             {/* Status badge */}
@@ -454,6 +527,132 @@ export default function DetaljiNatjecanja() {
             </div>
           </div>
         </div>
+
+        {/* General info editor (visible in edit mode) */}
+        {editMode && canEdit && (
+          <div className="mb-6 border-2 border-amber-200 rounded-lg bg-amber-50">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-amber-200">
+              <h3 className="text-lg font-bold text-amber-800">Uredi osnovne podatke</h3>
+              <button
+                onClick={() => setGeneralOpen(!generalOpen)}
+                className="text-amber-700 hover:text-amber-900 text-sm"
+              >
+                {generalOpen ? 'Sakrij' : 'Prikaži'}
+              </button>
+            </div>
+            {generalOpen && (
+              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-amber-900 mb-1">Naziv *</label>
+                  <input
+                    name="naziv"
+                    type="text"
+                    value={form.naziv}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-amber-200 rounded bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="Unesite naziv"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-amber-900 mb-1">Datum *</label>
+                  <input
+                    name="datum"
+                    type="text"
+                    value={form.datum}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-amber-200 rounded bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="npr. 2025-03-21"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-amber-900 mb-1">Kategorija</label>
+                  <input
+                    name="kategorija"
+                    type="text"
+                    value={form.kategorija}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-amber-200 rounded bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="npr. SPORT"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-amber-900 mb-1">Način prijave</label>
+                  <div className="flex items-center gap-4 mt-2">
+                    <label className="inline-flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="tipPrijave"
+                        value="web"
+                        checked={form.tipPrijave === 'web'}
+                        onChange={handleFormChange}
+                      />
+                      <span>Na webu</span>
+                    </label>
+                    <label className="inline-flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="tipPrijave"
+                        value="custom"
+                        checked={form.tipPrijave === 'custom'}
+                        onChange={handleFormChange}
+                      />
+                      <span>Vanjski link</span>
+                    </label>
+                  </div>
+                </div>
+                {form.tipPrijave === 'custom' && (
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-amber-900 mb-1">Link za prijavu *</label>
+                    <input
+                      name="prijavaLink"
+                      type="url"
+                      value={form.prijavaLink}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 border border-amber-200 rounded bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                      placeholder="https://..."
+                    />
+                  </div>
+                )}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-amber-900 mb-1">Opis</label>
+                  <textarea
+                    name="opis"
+                    rows={3}
+                    value={form.opis}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-amber-200 rounded bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                    placeholder="Kratki opis natjecanja (opcionalno)"
+                  />
+                </div>
+                <div className="md:col-span-2 flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      // reset
+                      setForm({
+                        naziv: natjecanje.naziv || '',
+                        datum: natjecanje.datum || '',
+                        kategorija: natjecanje.kategorija || '',
+                        opis: natjecanje.opis || '',
+                        tipPrijave: natjecanje.tipPrijave || 'web',
+                        prijavaLink: natjecanje.prijavaLink || ''
+                      });
+                    }}
+                    className="px-4 py-2 rounded border border-amber-200 text-amber-800 bg-white hover:bg-amber-100"
+                  >
+                    Resetiraj
+                  </button>
+                  <button
+                    onClick={saveGeneralInfo}
+                    disabled={savingGeneral}
+                    className="px-5 py-2 rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
+                  >
+                    {savingGeneral ? 'Spremanje...' : 'Spremi osnovne podatke'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Content blocks */}
         <div className="space-y-4">

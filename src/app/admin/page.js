@@ -565,9 +565,9 @@ export default function AdminPanel() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f6f6f6]">
+      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
         <div className="text-center">
-          <div className="text-2xl font-bold text-[#36b977] mb-4">Učitavanje...</div>
+          <div className="text-2xl font-bold text-amber-600 mb-4">Učitavanje...</div>
         </div>
       </div>
     );
@@ -578,25 +578,19 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f6f6f6]">
+    <div className="min-h-screen bg-yellow-50">
       {/* Header */}
-      <header className="sticky top-0 w-full flex items-center justify-between px-6 py-4 bg-[#666] shadow-md z-50">
+      <header className="sticky top-0 w-full flex items-center justify-between px-6 py-4 bg-amber-600 shadow-md z-50">
         <div className="flex items-center gap-4">
-          <img
-            src="/slike/logo.jpg.png"
-            alt="Logo"
-            width={48}
-            height={48}
-            className="rounded border-2 border-gray-300 shadow bg-white"
-          />
+          <img src="/slike/logo.jpg.png" alt="Logo" width={48} height={48} className="rounded border-2 border-amber-200 shadow bg-white" />
           <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-white">Dobrodošli, {user?.email}</span>
           <Link href="/natjecanja">
-            <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200 flex items-center gap-2">
+            <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-amber-100 hover:text-amber-700 transition-colors duration-200 flex items-center gap-2">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
               Početna
             </button>
@@ -605,48 +599,12 @@ export default function AdminPanel() {
       </header>
 
       {/* Navigation Tabs */}
-      <div className="sticky top-20 w-full bg-white shadow-sm z-40">
+      <div className="sticky top-20 w-full bg-amber-50 shadow-sm border-b border-amber-100 z-40">
         <div className="flex justify-center">
-          <button
-            onClick={() => setActiveTab('registrations')}
-            className={`px-6 py-3 font-semibold ${
-              activeTab === 'registrations'
-                ? 'text-[#36b977] border-b-2 border-[#36b977]'
-                : 'text-gray-600 hover:text-[#36b977]'
-            }`}
-          >
-            Zahtjevi za registraciju
-          </button>
-          <button
-            onClick={() => setActiveTab('applications')}
-            className={`px-6 py-3 font-semibold ${
-              activeTab === 'applications'
-                ? 'text-[#36b977] border-b-2 border-[#36b977]'
-                : 'text-gray-600 hover:text-[#36b977]'
-            }`}
-          >
-            Prijave na natjecanja
-          </button>
-          <button
-            onClick={() => setActiveTab('competitions')}
-            className={`px-6 py-3 font-semibold ${
-              activeTab === 'competitions'
-                ? 'text-[#36b977] border-b-2 border-[#36b977]'
-                : 'text-gray-600 hover:text-[#36b977]'
-            }`}
-          >
-            Natjecanja za odobravanje
-          </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`px-6 py-3 font-semibold ${
-              activeTab === 'users'
-                ? 'text-[#36b977] border-b-2 border-[#36b977]'
-                : 'text-gray-600 hover:text-[#36b977]'
-            }`}
-          >
-            Korisnici i Admini
-          </button>
+          <button onClick={() => setActiveTab('registrations')} className={`px-6 py-3 font-semibold ${activeTab === 'registrations' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Zahtjevi za registraciju</button>
+          <button onClick={() => setActiveTab('applications')} className={`px-6 py-3 font-semibold ${activeTab === 'applications' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Prijave na natjecanja</button>
+          <button onClick={() => setActiveTab('competitions')} className={`px-6 py-3 font-semibold ${activeTab === 'competitions' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Natjecanja za odobravanje</button>
+          <button onClick={() => setActiveTab('users')} className={`px-6 py-3 font-semibold ${activeTab === 'users' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Korisnici i Admini</button>
         </div>
       </div>
 
@@ -656,7 +614,7 @@ export default function AdminPanel() {
         {activeTab === 'registrations' && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Zahtjevi za registraciju</h2>
+              <h2 className="text-2xl font-bold text-amber-900">Zahtjevi za registraciju</h2>
               <div className="flex gap-2">
                 <button
                   onClick={() => setFilter('pending')}
@@ -694,7 +652,7 @@ export default function AdminPanel() {
               
               if (filteredZahtjevi.length === 0) {
                 return (
-                  <div className="text-center py-12 bg-white rounded-lg shadow">
+                  <div className="text-center py-12 bg-white rounded-lg shadow border border-amber-100">
                     <div className="text-gray-500 text-lg mb-2">
                       {filter === 'all' ? 'Nema zahtjeva za registraciju' : 
                        filter === 'pending' ? 'Nema zahtjeva na čekanju' :
@@ -707,7 +665,7 @@ export default function AdminPanel() {
               return (
                 <div className="space-y-4">
                   {filteredZahtjevi.map((zahtjev) => (
-                    <div key={zahtjev.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div key={zahtjev.id} className="bg-white rounded-lg shadow-md p-6 border border-amber-200 hover:border-amber-300 hover:shadow-lg transition">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-start justify-between">
@@ -730,8 +688,8 @@ export default function AdminPanel() {
                             </span>
                           </div>
                           
-                          <div className="mt-4 p-4 bg-gray-50 rounded">
-                            <p className="text-sm font-medium text-gray-700 mb-2">Razlog registracije:</p>
+                          <div className="mt-4 p-4 bg-amber-50 rounded">
+                            <p className="text-sm font-medium text-amber-900 mb-2">Razlog registracije:</p>
                             <p className="text-gray-800">{zahtjev.razlog}</p>
                           </div>
                           
@@ -901,7 +859,7 @@ export default function AdminPanel() {
               return (
                 <div className="space-y-4">
                   {filteredNatjecanja.map((natjecanje) => (
-                    <div key={natjecanje.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div key={natjecanje.id} className="bg-white rounded-lg shadow-md p-6 border border-amber-200 hover:border-amber-300 hover:shadow-lg transition">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-start justify-between">
@@ -995,118 +953,95 @@ export default function AdminPanel() {
         {/* Korisnici i Admini */}
         {activeTab === 'users' && (
           <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Upravljanje korisnicima i adminima</h2>
-              <p className="text-sm text-green-600 font-medium">✓ Vi ste admin i možete upravljati korisnicima</p>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Korisnici i Admini</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setLoadingUsers(true)} // Reload users
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm font-medium"
+                >
+                  ⟳ Osvježi
+                </button>
+              </div>
             </div>
-
+            
             {loadingUsers ? (
-              <div className="flex justify-center py-8">
+              <div className="text-center py-8">
                 <div className="text-lg text-gray-600">Učitavanje korisnika...</div>
               </div>
             ) : (
-              <div className="space-y-6">
-                {/* Admini */}
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                    Administratori ({admins.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {admins.length === 0 ? (
-                      <p className="text-gray-500 italic">Nema administratora</p>
-                    ) : (
-                      admins.map((admin) => (
-                        <div key={admin.uid} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                              <div>
-                                <p className="font-semibold text-gray-900">
-                                  {admin.name || admin.email || 'N/A'}
-                                  {admin.name && (
-                                    <span className="text-sm text-gray-500 ml-2">({admin.email})</span>
-                                  )}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Admin
-                                  {admin.assignedAt && (
-                                    <span className="ml-2">
-                                      • Dodijeljen: {new Date(admin.assignedAt).toLocaleDateString('hr-HR')}
-                                    </span>
-                                  )}
-                                  {admin.assignedBy && (
-                                    <span className="ml-2">• Od: {admin.assignedBy}</span>
-                                  )}
-                                </p>
-                              </div>
+              <div className="space-y-4">
+                {/* Admins list - always show admins at the top */}
+                {admins.length > 0 && (
+                  <div>
+                    <div className="text-lg font-semibold text-gray-800 mb-4">Admini ({admins.length})</div>
+                    <div className="bg-white rounded-lg shadow-md divide-y divide-amber-200">
+                      {admins.map(admin => (
+                        <div key={admin.uid} className="flex items-center justify-between p-4 hover:bg-amber-50 transition">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                              <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </div>
+                            <div className="text-sm">
+                              <div className="font-medium text-gray-800">{admin.name || admin.email}</div>
+                              <div className="text-gray-500">{admin.role}</div>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            {admin.uid !== user.uid && (
-                              <button
-                                onClick={() => handleRemoveAdmin(admin.uid, admin.email)}
-                                className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
-                              >
-                                Ukloni admin prava
-                              </button>
-                            )}
-                            {admin.uid === user.uid && (
-                              <span className="text-sm text-green-600 font-medium">To ste vi</span>
-                            )}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleRemoveAdmin(admin.uid, admin.email)}
+                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors text-xs font-medium"
+                            >
+                              ⊖ Ukloni admin prava
+                            </button>
                           </div>
                         </div>
-                      ))
-                    )}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Registrirani korisnici */}
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                    Registrirani korisnici ({users.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {users.length === 0 ? (
-                      <p className="text-gray-500 italic">Nema registriranih korisnika</p>
-                    ) : (
-                      users.map((korisnik) => {
-                        const isAdmin = admins.some(admin => admin.email === korisnik.email);
-                        return (
-                          <div key={korisnik.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3">
-                                <div className={`w-3 h-3 rounded-full ${isAdmin ? 'bg-blue-500' : 'bg-green-500'}`}></div>
-                                <div>
-                                  <p className="font-semibold text-gray-900">
-                                    {korisnik.ime} {korisnik.prezime}
-                                    {isAdmin && <span className="ml-2 text-blue-600 font-medium">(Admin)</span>}
-                                  </p>
-                                  <p className="text-sm text-gray-600">{korisnik.email}</p>
-                                  <p className="text-xs text-gray-500">
-                                    Registriran: {new Date(korisnik.createdAt).toLocaleDateString('hr-HR')}
-                                    {korisnik.approvedAt && (
-                                      <span className="ml-2">
-                                        • Odobren: {new Date(korisnik.approvedAt).toLocaleDateString('hr-HR')}
-                                      </span>
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              {!isAdmin && (
-                                <button
-                                  onClick={() => handleMakeAdmin(korisnik.email, korisnik.uid)}
-                                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
-                                >
-                                  Napravi admin
-                                </button>
-                              )}
-                            </div>
+                {/* Users list */}
+                <div>
+                  <div className="text-lg font-semibold text-gray-800 mb-4">
+                    Korisnici ({users.length})
+                    <span className="text-sm text-gray-500 ml-2">
+                      (uključuje sve aktivne korisnike i odobrene registracije)
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md divide-y divide-amber-200">
+                    {users.map(user => (
+                      <div key={user.uid} className="flex items-center justify-between p-4 hover:bg-amber-50 transition">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                            <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                           </div>
-                        );
-                      })
-                    )}
+                          <div className="text-sm">
+                            <div className="font-medium text-gray-800">{user.ime} {user.prezime}</div>
+                            <div className="text-gray-500">{user.email}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {user.source === 'registrationRequests' && user.status === 'approved' && (
+                            <span className="text-xs font-semibold bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                              Odobren korisnik
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleMakeAdmin(user.email, user.uid)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs font-medium"
+                          >
+                            ⊕ Dodijeli admin prava
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
