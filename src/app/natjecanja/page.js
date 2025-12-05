@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "../../firebase/config";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
@@ -19,6 +19,19 @@ export default function Natjecanja() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, isAdmin, loading, logout } = useAuth();
   
+  // Debug user state and log it to browser console
+  useEffect(() => {
+    console.log('=== NATJECANJA PAGE DEBUG ===');
+    console.log('User:', user);
+    console.log('Loading:', loading);
+    console.log('IsAdmin:', isAdmin);
+    console.log('Router:', router);
+    console.log('Natjecanja count:', natjecanja.length);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Window location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+    console.log('=== END DEBUG ===');
+  }, [user, isAdmin, loading, router, natjecanja]);
+
   // Close mobile menus when clicking outside
   useEffect(() => {
     if (!isMenuOpen && !isFilterOpen) return;
@@ -154,15 +167,13 @@ export default function Natjecanja() {
   // Use only the fixed list of types requested (do not merge with Firestore values)
   const offeredTypes = mogucaNatjecanja;
 
-  // Filter competitions by year, search and type - memoized for performance
-  const filtriranaNatjecanja = useMemo(() => {
-    return natjecanja.filter(n => {
-      const byYear = godina ? n.datum?.startsWith(godina) : true;
-      const bySearch = search ? n.naziv?.toLowerCase().includes(search.toLowerCase()) : true;
-      const byType = selected ? n.kategorija === selected : true;
-      return byYear && bySearch && byType;
-    });
-  }, [natjecanja, godina, search, selected]);
+  // Filter competitions by year, search and type - simple filter without memoization
+  const filtriranaNatjecanja = natjecanja.filter(n => {
+    const byYear = godina ? n.datum?.startsWith(godina) : true;
+    const bySearch = search ? n.naziv?.toLowerCase().includes(search.toLowerCase()) : true;
+    const byType = selected ? n.kategorija === selected : true;
+    return byYear && bySearch && byType;
+  });
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden pt-16">\
@@ -309,6 +320,18 @@ export default function Natjecanja() {
         <h1 className="text-2xl font-extrabold text-[#36b977] text-center tracking-wide">
           NATJECANJA
         </h1>
+        {/* Debug navigation test */}
+        <div className="text-center mt-2 pb-2">
+          <button 
+            onClick={() => {
+              console.log('Test navigation clicked');
+              window.location.assign('/admin');
+            }}
+            className="bg-red-500 text-white px-2 py-1 rounded text-xs"
+          >
+            Test Nav
+          </button>
+        </div>
       </div>
 
       {/* Mobile filter dropdown */}
@@ -446,11 +469,21 @@ export default function Natjecanja() {
                 className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
                 onClick={() => {
                   try {
-                    console.log('Navigating to natjecanje:', natjecanje.id);
-                    router.push(`/natjecanja/${natjecanje.id}`);
+                    console.log('Card clicked for natjecanje:', natjecanje.id);
+                    console.log('Router object:', router);
+                    
+                    // Force hard navigation instead of soft navigation
+                    if (typeof window !== 'undefined') {
+                      const url = `/natjecanja/${natjecanje.id}`;
+                      console.log('Attempting navigation to:', url);
+                      window.location.assign(url);
+                    }
                   } catch (error) {
                     console.error('Navigation error:', error);
-                    window.location.href = `/natjecanja/${natjecanje.id}`;
+                    // Final fallback
+                    const url = `/natjecanja/${natjecanje.id}`;
+                    console.log('Fallback navigation to:', url);
+                    window.open(url, '_self');
                   }
                 }}
               >
@@ -525,11 +558,13 @@ export default function Natjecanja() {
                       e.preventDefault();
                       e.stopPropagation();
                       try {
-                        console.log('Navigating to prijava for:', natjecanje.id);
-                        router.push(`/natjecanja/${natjecanje.id}/prijava`);
+                        console.log('Prijava button clicked for:', natjecanje.id);
+                        const url = `/natjecanja/${natjecanje.id}/prijava`;
+                        console.log('Attempting navigation to prijava:', url);
+                        window.location.assign(url);
                       } catch (error) {
                         console.error('Navigation error:', error);
-                        window.location.href = `/natjecanja/${natjecanje.id}/prijava`;
+                        window.open(`/natjecanja/${natjecanje.id}/prijava`, '_self');
                       }
                     }}
                     className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
