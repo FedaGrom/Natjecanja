@@ -204,6 +204,8 @@ export default function DetaljiNatjecanja() {
         timer: 2000,
         showConfirmButton: false
       });
+      // Exit edit mode after successful save
+      setEditMode(false);
     } catch (error) {
       console.error('Error saving changes:', error);
       // Fallback to localStorage
@@ -220,6 +222,8 @@ export default function DetaljiNatjecanja() {
         timer: 2000,
         showConfirmButton: false
       });
+      // Also exit edit mode if we saved locally
+      setEditMode(false);
     } finally {
       setSaving(false);
     }
@@ -347,6 +351,8 @@ export default function DetaljiNatjecanja() {
 
       setNatjecanje((prev) => ({ ...prev, ...updatePayload }));
       await Swal.fire({ icon: 'success', title: 'Osnovni podaci spremljeni', timer: 1500, showConfirmButton: false });
+      // Exit edit mode after successful general info save
+      setEditMode(false);
     } catch (error) {
       console.error('Error saving general info:', error);
       await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće spremiti osnovne podatke.' });
