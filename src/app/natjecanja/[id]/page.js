@@ -117,7 +117,16 @@ export default function DetaljiNatjecanja() {
     const newBlock = {
       id: Date.now().toString(),
       type: type,
-      content: type === 'title' ? 'Novi naslov' : type === 'subtitle' ? 'Novi podnaslov' : 'Novi tekst...'
+      content:
+        type === 'title'
+          ? 'Novi naslov'
+          : type === 'subtitle'
+          ? 'Novi podnaslov'
+          : type === 'text'
+          ? 'Novi tekst...'
+          : type === 'kontakt'
+          ? { instagram: '', phone: '' }
+          : ''
     };
     setContentBlocks([...contentBlocks, newBlock]);
   };
@@ -736,6 +745,70 @@ export default function DetaljiNatjecanja() {
                   <div className="text-gray-700 mb-4 whitespace-pre-wrap">{block.content}</div>
                 )
               )}
+
+              {block.type === 'kontakt' && (
+                editMode && canEdit ? (
+                  <div className="bg-white border-2 border-dashed border-gray-300 rounded p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Instagram</label>
+                        <input
+                          type="text"
+                          value={block.content?.instagram || ''}
+                          onChange={(e) => updateContentBlock(block.id, { ...block.content, instagram: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#36b977]"
+                          placeholder="@korisnicko_ime ili link"
+                          onDragStart={(e) => e.preventDefault()}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Telefon</label>
+                        <input
+                          type="tel"
+                          value={block.content?.phone || ''}
+                          onChange={(e) => updateContentBlock(block.id, { ...block.content, phone: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#36b977]"
+                          placeholder="+385 91 123 4567"
+                          onDragStart={(e) => e.preventDefault()}
+                        />
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">Unesite barem jedan kontakt.</div>
+                  </div>
+                ) : (
+                  (() => {
+                    const igRaw = (block.content?.instagram || '').trim();
+                    const igHandle = igRaw
+                      .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
+                      .replace(/^@/, '')
+                      .replace(/\/$/, '');
+                    const igUrl = igHandle ? `https://instagram.com/${igHandle}` : '';
+                    const phoneRaw = (block.content?.phone || '').trim();
+                    const phoneUrl = phoneRaw ? `tel:${phoneRaw.replace(/\s+/g, '')}` : '';
+                    if (!igHandle && !phoneRaw) return null;
+                    return (
+                      <div className="bg-gray-50 border border-gray-200 rounded p-4 flex flex-col gap-2">
+                        {igHandle && (
+                          <a href={igUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-pink-600 hover:underline">
+                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                              <path d="M7 2C4.243 2 2 4.243 2 7v10c0 2.757 2.243 5 5 5h10c2.757 0 5-2.243 5-5V7c0-2.757-2.243-5-5-5H7zm10 2a3 3 0 013 3v10a3 3 0 01-3 3H7a3 3 0 01-3-3V7a3 3 0 013-3h10zM12 7a5 5 0 100 10 5 5 0 000-10zm0 2.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM17.5 6.5a1 1 0 100 2 1 1 0 000-2z"/>
+                            </svg>
+                            @{igHandle}
+                          </a>
+                        )}
+                        {phoneRaw && (
+                          <a href={phoneUrl} className="inline-flex items-center gap-2 text-green-700 hover:underline">
+                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                              <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l1.83-1.83a1 1 0 011.01-.24c1.12.37 2.33.57 3.55.57a1 1 0 011 1V21a1 1 0 01-1 1C10.85 22 2 13.15 2 2a1 1 0 011-1h3.12a1 1 0 011 1c0 1.22.2 2.43.57 3.55a1 1 0 01-.24 1.01l-1.83 1.83z"/>
+                            </svg>
+                            {phoneRaw}
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })()
+                )
+              )}
             </div>
           ))}
           
@@ -786,6 +859,15 @@ export default function DetaljiNatjecanja() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   Tekst
+                </button>
+                <button
+                  onClick={() => addContentBlock('kontakt')}
+                  className="bg-rose-500 text-white px-4 py-2 rounded hover:bg-rose-600 transition-colors duration-200 flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Kontakt
                 </button>
               </div>
             </div>
