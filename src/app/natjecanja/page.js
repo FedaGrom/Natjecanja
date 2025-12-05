@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "../../firebase/config";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
@@ -19,28 +19,16 @@ export default function Natjecanja() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, isAdmin, loading, logout } = useAuth();
   
-  // Debug user state
-  useEffect(() => {
-    console.log('Natjecanja: User state received:', { 
-      user: user?.email || 'null', 
-      userExists: !!user,
-      isAdmin, 
-      loading,
-      userObject: user 
-    });
-    console.log('Natjecanja: isAdmin check:', isAdmin, 'typeof:', typeof isAdmin);
-  }, [user, isAdmin, loading]);
-
   // Close mobile menus when clicking outside
   useEffect(() => {
+    if (!isMenuOpen && !isFilterOpen) return;
+    
     const handleClickOutside = (event) => {
-      if (isMenuOpen || isFilterOpen) {
-        // Check if click is outside the menus
-        const isClickInsideMenu = event.target.closest('.mobile-menu') || event.target.closest('.mobile-filter');
-        if (!isClickInsideMenu) {
-          setIsMenuOpen(false);
-          setIsFilterOpen(false);
-        }
+      // Check if click is outside the menus
+      const isClickInsideMenu = event.target.closest('.mobile-menu') || event.target.closest('.mobile-filter');
+      if (!isClickInsideMenu) {
+        setIsMenuOpen(false);
+        setIsFilterOpen(false);
       }
     };
 
@@ -59,7 +47,6 @@ export default function Natjecanja() {
         const items = snapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
           .filter(item => item.status === 'published'); // Filter on client side
-        console.log('Firestore data loaded:', items);
         setNatjecanja(items);
       }, 
       (err) => {
@@ -148,17 +135,18 @@ export default function Natjecanja() {
   // Use only the fixed list of types requested (do not merge with Firestore values)
   const offeredTypes = mogucaNatjecanja;
 
-  // Filter competitions by year, search and type
-  const filtriranaNatjecanja = natjecanja.filter(n => {
-    const byYear = godina ? n.datum?.startsWith(godina) : true;
-    const bySearch = search ? n.naziv?.toLowerCase().includes(search.toLowerCase()) : true;
-    const byType = selected ? n.kategorija === selected : true;
-    return byYear && bySearch && byType;
-  });
+  // Filter competitions by year, search and type - memoized for performance
+  const filtriranaNatjecanja = useMemo(() => {
+    return natjecanja.filter(n => {
+      const byYear = godina ? n.datum?.startsWith(godina) : true;
+      const bySearch = search ? n.naziv?.toLowerCase().includes(search.toLowerCase()) : true;
+      const byType = selected ? n.kategorija === selected : true;
+      return byYear && bySearch && byType;
+    });
+  }, [natjecanja, godina, search, selected]);
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden pt-16">
-      {console.log('Natjecanja: About to render with user:', !!user, 'loading:', loading)}
+    <div className="min-h-screen bg-white overflow-x-hidden pt-16">\
       
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">

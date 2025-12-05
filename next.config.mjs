@@ -3,12 +3,18 @@ const nextConfig = {
   // Optimizacije za brži build
   experimental: {
     esmExternals: true,
+    optimizeCss: true,
+    optimizePackageImports: ['firebase', 'sweetalert2'],
   },
   
   // Optimizacije za sliku
   images: {
     unoptimized: true,
   },
+  
+  // Performance optimizations
+  poweredByHeader: false,
+  reactStrictMode: true,
   
   // Webpack optimizacije
   webpack: (config, { dev, isServer }) => {
@@ -32,6 +38,23 @@ const nextConfig = {
         ...config.optimization,
         usedExports: true,
         sideEffects: false,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+            },
+            firebase: {
+              test: /[\\/]node_modules[\\/]firebase[\\/]/,
+              name: 'firebase',
+              chunks: 'all',
+              priority: 20,
+            },
+          },
+        },
       };
     }
     
@@ -46,7 +69,9 @@ const nextConfig = {
   
   // Compiler optimizacije
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: {
+      exclude: process.env.NODE_ENV === 'development' ? [] : ['error', 'warn']
+    },
   },
 };
 

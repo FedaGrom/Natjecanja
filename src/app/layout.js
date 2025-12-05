@@ -16,12 +16,10 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  console.log("RootLayout: Rendering with AuthProvider");
   return (
     <html lang="hr">
       <body className={inter.className}>
         <AuthProvider>
-          {console.log("RootLayout: Children wrapped in AuthProvider")}
           {children}
         </AuthProvider>
       </body>
