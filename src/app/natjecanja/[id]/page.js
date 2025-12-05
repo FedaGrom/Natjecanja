@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { db } from "../../../firebase/config";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../../../contexts/AuthContext";
 import Sidebar from "../../components/Sidebar";
 import Swal from 'sweetalert2';
@@ -81,6 +81,17 @@ export default function DetaljiNatjecanja() {
 
   // Handle registration
   const handlePrijava = () => {
+    const phase = natjecanje?.phase || 'prijave';
+    if (phase !== 'prijave') {
+      Swal.fire({
+        icon: 'info',
+        title: 'Prijave su zatvorene',
+        text: phase === 'aktivan' 
+          ? 'Natjecanje je u tijeku, prijave više nisu moguće.' 
+          : 'Natjecanje je završilo, prijave nisu moguće.'
+      });
+      return;
+    }
     if (natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink) {
       window.open(natjecanje.prijavaLink, '_blank');
     } else {
@@ -193,6 +204,71 @@ export default function DetaljiNatjecanja() {
     }
   };
 
+  // Status helpers
+  const currentPhase = natjecanje?.phase || 'prijave'; // prijave | aktivan | zavrsio
+  const phaseLabelMap = {
+    prijave: 'Prijave u tijeku',
+    aktivan: 'Aktivan',
+    zavrsio: 'Završio'
+  };
+  const phaseColorMap = {
+    prijave: 'bg-blue-100 text-blue-700 border-blue-200',
+    aktivan: 'bg-amber-100 text-amber-700 border-amber-200',
+    zavrsio: 'bg-gray-100 text-gray-700 border-gray-200'
+  };
+
+  const startCompetition = async () => {
+    if (!canEdit || currentPhase === 'aktivan' || currentPhase === 'zavrsio') return;
+    const confirm = await Swal.fire({
+      icon: 'question',
+      title: 'Pokreni natjecanje?',
+      text: 'Status će se promijeniti u "Aktivan" i zabilježit će se datum početka.',
+      showCancelButton: true,
+      confirmButtonText: 'Pokreni',
+      cancelButtonText: 'Odustani'
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      const ref = doc(db, 'natjecanja', id);
+      await updateDoc(ref, {
+        phase: 'aktivan',
+        startedAt: serverTimestamp(),
+        startedBy: user?.email || user?.uid || 'unknown'
+      });
+      setNatjecanje(prev => ({ ...prev, phase: 'aktivan', startedAt: new Date() }));
+      await Swal.fire({ icon: 'success', title: 'Natjecanje je pokrenuto', timer: 1500, showConfirmButton: false });
+    } catch (e) {
+      console.error('Error starting competition:', e);
+      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće pokrenuti natjecanje.' });
+    }
+  };
+
+  const endCompetition = async () => {
+    if (!canEdit || currentPhase !== 'aktivan') return;
+    const confirm = await Swal.fire({
+      icon: 'warning',
+      title: 'Završi natjecanje?',
+      text: 'Status će se promijeniti u "Završio" i zabilježit će se datum završetka.',
+      showCancelButton: true,
+      confirmButtonText: 'Završi',
+      cancelButtonText: 'Odustani'
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      const ref = doc(db, 'natjecanja', id);
+      await updateDoc(ref, {
+        phase: 'zavrsio',
+        endedAt: serverTimestamp(),
+        endedBy: user?.email || user?.uid || 'unknown'
+      });
+      setNatjecanje(prev => ({ ...prev, phase: 'zavrsio', endedAt: new Date() }));
+      await Swal.fire({ icon: 'success', title: 'Natjecanje je završeno', timer: 1500, showConfirmButton: false });
+    } catch (e) {
+      console.error('Error ending competition:', e);
+      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće završiti natjecanje.' });
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -250,29 +326,50 @@ export default function DetaljiNatjecanja() {
             DETALJI NATJECANJA
           </h1>
           
-          {canEdit && (
-            <div className="flex items-center gap-2">
-              {editMode && (
+          <div className="flex items-center gap-2">
+            {/* Status badge */}
+            <span className={`hidden md:inline-block px-2 py-1 rounded border text-xs font-semibold ${phaseColorMap[currentPhase]}`}>
+              {phaseLabelMap[currentPhase]}
+            </span>
+            {canEdit && (
+              <>
+                {currentPhase === 'prijave' && (
+                  <button onClick={startCompetition} className="bg-amber-500 text-white px-3 py-2 rounded hover:bg-amber-600 transition-colors duration-200">
+                    Počni natjecanje
+                  </button>
+                )}
+                {currentPhase === 'aktivan' && (
+                  <button onClick={endCompetition} className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition-colors duration-200">
+                    Završi natjecanje
+                  </button>
+                )}
+              </>
+            )}
+            {/* Edit controls */}
+            {canEdit && (
+              <div className="flex items-center gap-2">
+                {editMode && (
+                  <button
+                    onClick={saveChanges}
+                    disabled={saving}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200 disabled:opacity-50"
+                  >
+                    {saving ? 'Spremanje...' : 'Spremi promjene'}
+                  </button>
+                )}
                 <button
-                  onClick={saveChanges}
-                  disabled={saving}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200 disabled:opacity-50"
+                  onClick={() => setEditMode(!editMode)}
+                  className={`px-4 py-2 rounded font-medium transition-colors duration-200 ${
+                    editMode 
+                      ? 'bg-red-500 text-white hover:bg-red-600' 
+                      : 'bg-white text-[#666] hover:bg-[#36b977] hover:text-white'
+                  }`}
                 >
-                  {saving ? 'Spremanje...' : 'Spremi promjene'}
+                  {editMode ? 'Izađi iz edit moda' : 'Uredi sadržaj'}
                 </button>
-              )}
-              <button
-                onClick={() => setEditMode(!editMode)}
-                className={`px-4 py-2 rounded font-medium transition-colors duration-200 ${
-                  editMode 
-                    ? 'bg-red-500 text-white hover:bg-red-600' 
-                    : 'bg-white text-[#666] hover:bg-[#36b977] hover:text-white'
-                }`}
-              >
-                {editMode ? 'Izađi iz edit moda' : 'Uredi sadržaj'}
-              </button>
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -305,24 +402,54 @@ export default function DetaljiNatjecanja() {
                 <p><strong>Naziv:</strong> {natjecanje.naziv}</p>
                 <p><strong>Datum:</strong> {natjecanje.datum}</p>
                 <p><strong>Kategorija:</strong> {natjecanje.kategorija}</p>
-                {natjecanje.opis && (
-                  <p><strong>Opis:</strong> {natjecanje.opis}</p>
+                <p className="mt-2">
+                  <strong>Status:</strong>{' '}
+                  <span className={`inline-block px-2 py-0.5 rounded border text-xs font-semibold ${phaseColorMap[currentPhase]}`}>
+                    {phaseLabelMap[currentPhase]}
+                  </span>
+                </p>
+                {(natjecanje.startedAt || currentPhase === 'aktivan') && (
+                  <p><strong>Početak:</strong> {natjecanje.startedAt?.toDate ? natjecanje.startedAt.toDate().toLocaleString('hr-HR') : ''}</p>
+                )}
+                {natjecanje.endedAt && (
+                  <p><strong>Završetak:</strong> {natjecanje.endedAt?.toDate ? natjecanje.endedAt.toDate().toLocaleString('hr-HR') : ''}</p>
                 )}
               </div>
-              <div className="flex items-center justify-center">
-                <button
-                  onClick={handlePrijava}
-                  className="bg-[#36b977] text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg text-lg font-medium"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    )}
-                  </svg>
-                  Prijavi se na natjecanje
-                </button>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                {(natjecanje?.phase || 'prijave') === 'prijave' ? (
+                  <button
+                    onClick={handlePrijava}
+                    className="bg-[#36b977] text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg text-lg font-medium"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      )}
+                    </svg>
+                    Prijavi se na natjecanje
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="bg-gray-300 text-gray-600 px-8 py-3 rounded-lg cursor-not-allowed transition-colors duration-200 flex items-center gap-2 shadow text-lg font-medium"
+                    title="Prijave su zatvorene"
+                  >
+                    Prijave zatvorene
+                  </button>
+                )}
+                {canEdit && currentPhase === 'prijave' && (
+                  <button onClick={startCompetition} className="bg-amber-500 text-white px-4 py-3 rounded hover:bg-amber-600 transition-colors duration-200">
+                    Počni natjecanje
+                  </button>
+                )}
+                {canEdit && currentPhase === 'aktivan' && (
+                  <button onClick={endCompetition} className="bg-red-500 text-white px-4 py-3 rounded hover:bg-red-600 transition-colors duration-200">
+                    Završi natjecanje
+                  </button>
+                )}
               </div>
             </div>
           </div>

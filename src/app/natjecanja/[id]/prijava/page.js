@@ -72,9 +72,23 @@ export default function PrijavaNatjecanje() {
     }));
   };
 
+  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+
+    // Block submissions if phase is not 'prijave'
+    if ((natjecanje?.phase || 'prijave') !== 'prijave') {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Prijave su zatvorene',
+        text: natjecanje?.phase === 'aktivan' 
+          ? 'Natjecanje je u tijeku, prijave više nisu moguće.'
+          : 'Natjecanje je završilo, prijave nisu moguće.'
+      });
+      setSubmitting(false);
+      return;
+    }
 
     // Validacija
     if (!formData.ime || !formData.prezime || !formData.email) {
@@ -165,6 +179,9 @@ export default function PrijavaNatjecanje() {
     );
   }
 
+  // If registrations are closed, show info and prevent form usage
+  const prijaveOtvorene = (natjecanje?.phase || 'prijave') === 'prijave';
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -235,146 +252,161 @@ export default function PrijavaNatjecanje() {
           </div>
         </div>
 
-        {/* Application Form */}
-        <div className="bg-white rounded-lg shadow-sm p-6 border-2 border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Podaci za prijavu</h2>
+        {!prijaveOtvorene ? (
+          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
+            <h2 className="text-2xl font-bold text-yellow-800 mb-2">Prijave su zatvorene</h2>
+            <p className="text-yellow-700 mb-4">
+              {natjecanje.phase === 'aktivan' 
+                ? 'Natjecanje je u tijeku, prijave više nisu moguće.'
+                : 'Natjecanje je završilo, prijave nisu moguće.'}
+            </p>
+            <Link href={`/natjecanja/${id}`}>
+              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
+                ← Nazad na detalje
+              </button>
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm p-6 border-2 border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Podaci za prijavu</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="ime" className="block text-sm font-medium text-gray-700 mb-2">
-                  Ime *
-                </label>
-                <input
-                  id="ime"
-                  name="ime"
-                  type="text"
-                  value={formData.ime}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
-                  placeholder="Unesite ime"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="prezime" className="block text-sm font-medium text-gray-700 mb-2">
-                  Prezime *
-                </label>
-                <input
-                  id="prezime"
-                  name="prezime"
-                  type="text"
-                  value={formData.prezime}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
-                  placeholder="Unesite prezime"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email adresa *
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
-                placeholder="ime.prezime@email.com"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="razred" className="block text-sm font-medium text-gray-700 mb-2">
-                Razred
-              </label>
-              <select
-                id="razred"
-                name="razred"
-                value={formData.razred}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
-              >
-                <option value="">Izaberite razred</option>
-                <option value="1.a">1.a</option>
-                <option value="1.b">1.b</option>
-                <option value="1.c">1.c</option>
-                <option value="2.a">2.a</option>
-                <option value="2.b">2.b</option>
-                <option value="2.c">2.c</option>
-                <option value="3.a">3.a</option>
-                <option value="3.b">3.b</option>
-                <option value="3.c">3.c</option>
-                <option value="4.a">4.a</option>
-                <option value="4.b">4.b</option>
-                <option value="4.c">4.c</option>
-                <option value="Ostalo">Ostalo</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="kontakt" className="block text-sm font-medium text-gray-700 mb-2">
-                Kontakt telefon
-              </label>
-              <input
-                id="kontakt"
-                name="kontakt"
-                type="tel"
-                value={formData.kontakt}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
-                placeholder="Unesite broj telefona (opcionalno)"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="dodatneInformacije" className="block text-sm font-medium text-gray-700 mb-2">
-                Dodatne informacije
-              </label>
-              <textarea
-                id="dodatneInformacije"
-                name="dodatneInformacije"
-                rows={4}
-                value={formData.dodatneInformacije}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white resize-none"
-                placeholder="Ukoliko imate dodatne informacije ili pitanja, unesite ih ovdje (opcionalno)"
-              />
-            </div>
-
-            {/* Info box */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="text-blue-600 flex-shrink-0">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
-                  </svg>
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-blue-800 mb-2">Napomena</h3>
-                  <p className="text-blue-700">
-                    Vaša prijava će biti pregledana od strane organizatora natjecanja. 
-                    Za dodatne informacije o statusu prijave, obratite se organizatoru natjecanja ili profesoru informatike.
-                  </p>
+                  <label htmlFor="ime" className="block text-sm font-medium text-gray-700 mb-2">
+                    Ime *
+                  </label>
+                  <input
+                    id="ime"
+                    name="ime"
+                    type="text"
+                    value={formData.ime}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
+                    placeholder="Unesite ime"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="prezime" className="block text-sm font-medium text-gray-700 mb-2">
+                    Prezime *
+                  </label>
+                  <input
+                    id="prezime"
+                    name="prezime"
+                    type="text"
+                    value={formData.prezime}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
+                    placeholder="Unesite prezime"
+                    required
+                  />
                 </div>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-[#36b977] text-white py-3 px-6 rounded-lg font-medium text-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {submitting ? 'Šalje se prijava...' : 'Pošalji prijavu'}
-            </button>
-          </form>
-        </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email adresa *
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
+                  placeholder="ime.prezime@email.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="razred" className="block text-sm font-medium text-gray-700 mb-2">
+                  Razred
+                </label>
+                <select
+                  id="razred"
+                  name="razred"
+                  value={formData.razred}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
+                >
+                  <option value="">Izaberite razred</option>
+                  <option value="1.a">1.a</option>
+                  <option value="1.b">1.b</option>
+                  <option value="1.c">1.c</option>
+                  <option value="2.a">2.a</option>
+                  <option value="2.b">2.b</option>
+                  <option value="2.c">2.c</option>
+                  <option value="3.a">3.a</option>
+                  <option value="3.b">3.b</option>
+                  <option value="3.c">3.c</option>
+                  <option value="4.a">4.a</option>
+                  <option value="4.b">4.b</option>
+                  <option value="4.c">4.c</option>
+                  <option value="Ostalo">Ostalo</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="kontakt" className="block text-sm font-medium text-gray-700 mb-2">
+                  Kontakt telefon
+                </label>
+                <input
+                  id="kontakt"
+                  name="kontakt"
+                  type="tel"
+                  value={formData.kontakt}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
+                  placeholder="Unesite broj telefona (opcionalno)"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="dodatneInformacije" className="block text-sm font-medium text-gray-700 mb-2">
+                  Dodatne informacije
+                </label>
+                <textarea
+                  id="dodatneInformacije"
+                  name="dodatneInformacije"
+                  rows={4}
+                  value={formData.dodatneInformacije}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white resize-none"
+                  placeholder="Ukoliko imate dodatne informacije ili pitanja, unesite ih ovdje (opcionalno)"
+                />
+              </div>
+
+              {/* Info box */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="text-blue-600 flex-shrink-0">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-blue-800 mb-2">Napomena</h3>
+                    <p className="text-blue-700">
+                      Vaša prijava će biti pregledana od strane organizatora natjecanja. 
+                      Za dodatne informacije o statusu prijave, obratite se organizatoru natjecanja ili profesoru informatike.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-[#36b977] text-white py-3 px-6 rounded-lg font-medium text-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {submitting ? 'Šalje se prijava...' : 'Pošalji prijavu'}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
