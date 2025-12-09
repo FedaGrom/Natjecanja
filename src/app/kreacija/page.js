@@ -16,6 +16,11 @@ export default function KreacijaNatjecanja() {
   const [tipPrijave, setTipPrijave] = useState("web");
   const [customPrijavaLink, setCustomPrijavaLink] = useState("");
   const [loading, setLoading] = useState(false);
+  // Nova opcija: vrsta natjecanja (pojedinačno ili timsko)
+  const [vrstaNatjecanja, setVrstaNatjecanja] = useState('individual'); // 'individual' | 'team'
+  // Opcionalno: minimalan/maksimalan broj članova ekipe
+  const [teamMinMembers, setTeamMinMembers] = useState('');
+  const [teamMaxMembers, setTeamMaxMembers] = useState('');
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -71,6 +76,11 @@ export default function KreacijaNatjecanja() {
         opis: opis.trim() || null,
         tipPrijave,
         prijavaLink: tipPrijave === 'custom' ? customPrijavaLink : null,
+        // Nova postavka: kako se prijavljuje na ovo natjecanje (pojedinačno ili timski)
+        vrstaNatjecanja,
+        // Spremi ograničenja timova samo ako su postavljena i vrsta je team
+        teamMinMembers: vrstaNatjecanja === 'team' && teamMinMembers ? Number(teamMinMembers) : null,
+        teamMaxMembers: vrstaNatjecanja === 'team' && teamMaxMembers ? Number(teamMaxMembers) : null,
         gradientStyle: gradientStyle || null,
         createdAt: new Date().toISOString(),
         createdBy: user.email,
@@ -127,6 +137,10 @@ export default function KreacijaNatjecanja() {
           opis: opis.trim() || null,
           tipPrijave,
           prijavaLink: tipPrijave === 'custom' ? customPrijavaLink : null,
+          // spremi i lokalno
+          vrstaNatjecanja,
+          teamMinMembers: vrstaNatjecanja === 'team' && teamMinMembers ? Number(teamMinMembers) : null,
+          teamMaxMembers: vrstaNatjecanja === 'team' && teamMaxMembers ? Number(teamMaxMembers) : null,
           gradientStyle: gradientStyle || null,
           createdAt: new Date(),
         };
@@ -274,6 +288,61 @@ export default function KreacijaNatjecanja() {
             className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white resize-vertical min-h-[80px]"
             rows={3}
           />
+
+          {/* Nova sekcija: Vrsta natjecanja */}
+          <label className="font-bold text-[#666]">Vrsta natjecanja:</label>
+          <div className="space-y-2">
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                name="vrstaNatjecanja"
+                value="individual"
+                checked={vrstaNatjecanja === 'individual'}
+                onChange={(e) => setVrstaNatjecanja(e.target.value)}
+                className="text-[#36b977] focus:ring-[#36b977]"
+              />
+              <span>Pojedinačno</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                name="vrstaNatjecanja"
+                value="team"
+                checked={vrstaNatjecanja === 'team'}
+                onChange={(e) => setVrstaNatjecanja(e.target.value)}
+                className="text-[#36b977] focus:ring-[#36b977]"
+              />
+              <span>Timsko (grupno)</span>
+            </label>
+          </div>
+
+          {/* Ako je timsko, prikaži opcionalna ograničenja timova */}
+          {vrstaNatjecanja === 'team' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Minimalan broj članova (opcionalno)</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={teamMinMembers}
+                  onChange={(e) => setTeamMinMembers(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
+                  placeholder="npr. 2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Maksimalan broj članova (opcionalno)</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={teamMaxMembers}
+                  onChange={(e) => setTeamMaxMembers(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
+                  placeholder="npr. 5"
+                />
+              </div>
+            </div>
+          )}
 
           <label className="font-bold text-[#666]">Način prijave:</label>
           <div className="space-y-2">

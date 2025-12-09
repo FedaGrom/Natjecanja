@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { db } from "../../../../firebase/config";
-import { doc, getDoc, collection, query, where, orderBy, onSnapshot, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, onSnapshot, updateDoc, deleteDoc } from "firebase/firestore";
 import { useAuth } from "../../../../contexts/AuthContext";
 import Swal from 'sweetalert2';
 
@@ -66,13 +66,18 @@ export default function UpravljajPrijavama() {
 
     const q = query(
       collection(db, 'prijave'),
-      where('natjecanjeId', '==', id),
-      orderBy('createdAt', 'desc')
+      where('natjecanjeId', '==', id)
     );
     
     const unsub = onSnapshot(q, 
       (snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const items = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a, b) => {
+            const tb = typeof b.timestamp === 'number' ? b.timestamp : Date.parse(b.createdAt || 0);
+            const ta = typeof a.timestamp === 'number' ? a.timestamp : Date.parse(a.createdAt || 0);
+            return (tb || 0) - (ta || 0);
+          });
         console.log('Applications loaded for competition:', items);
         setPrijave(items);
         setLoadingApplications(false);
@@ -85,6 +90,33 @@ export default function UpravljajPrijavama() {
     );
     return () => unsub();
   }, [id, user]);
+
+  // Pomoćna funkcija za lokalno ažuriranje jedne prijave
+  const updateLocalPrijava = (pid, patch) => {
+    setPrijave(prev => prev.map(p => p.id === pid ? { ...p, ...patch } : p));
+  };
+
+  // Promjena vrste prijave (pojedinačna / grupna)
+  const handleTypeChange = async (pid, newType) => {
+    try {
+      await updateDoc(doc(db, 'prijave', pid), { vrstaPrijave: newType });
+      updateLocalPrijava(pid, { vrstaPrijave: newType });
+    } catch (e) {
+      console.error('Greška pri promjeni vrste prijave:', e);
+      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće promijeniti vrstu prijave.' });
+    }
+  };
+
+  // Spremi/izmijeni naziv grupe
+  const handleGroupNameBlur = async (pid, value) => {
+    try {
+      await updateDoc(doc(db, 'prijave', pid), { nazivGrupe: value || '' });
+      updateLocalPrijava(pid, { nazivGrupe: value || '' });
+    } catch (e) {
+      console.error('Greška pri spremanju naziva grupe:', e);
+      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće spremiti naziv grupe.' });
+    }
+  };
 
   const handleApprove = async (prijava) => {
     const result = await Swal.fire({
@@ -434,6 +466,36 @@ export default function UpravljajPrijavama() {
                       <div className="mt-4 p-3 bg-red-50 rounded-lg">
                         <p className="text-sm font-medium text-red-700">Razlog odbacivanja:</p>
                         <p className="text-sm text-red-600">{prijava.rejectionReason}</p>
+                      </div>
+                    )}
+
+                    {/* Uklonjen odjeljak za odabir vrste prijave; zadržan samo unos naziva grupe/razreda unutar detalja timske prijave */}
+                    {(prijava.vrstaPrijave === 'group' || Array.isArray(prijava.clanoviGrupe)) && (
+                      <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <p className="text-sm font-medium text-green-700 mb-2">Ekipna prijava</p>
+
+                        <div className="flex items-center gap-2 mb-2">
+                          <label className="text-sm text-gray-700 whitespace-nowrap">Naziv grupe/razreda:</label>
+                          <input
+                            type="text"
+                            defaultValue={prijava.nazivGrupe || prijava.razred || ''}
+                            onBlur={(e) => handleGroupNameBlur(prijava.id, e.target.value)}
+                            className="w-full sm:w-auto flex-1 px-2 py-1 border border-gray-300 rounded-md text-sm"
+                            placeholder="npr. 3.b TIM A"
+                          />
+                        </div>
+
+                        {Array.isArray(prijava.clanoviGrupe) && prijava.clanoviGrupe.length > 0 ? (
+                          <ul className="mt-2 space-y-1">
+                            {prijava.clanoviGrupe.map((clan, i) => (
+                              <li key={i} className="text-sm text-green-900">
+                                • {clan.ime} {clan.prezime}{clan.razred ? `, ${clan.razred}` : ''}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-green-700 mt-2">Nema dodanih članova.</p>
+                        )}
                       </div>
                     )}
                   </div>
