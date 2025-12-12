@@ -483,10 +483,10 @@ export default function Natjecanja() {
                       >
                         <div className="text-center text-white">
                           <div className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
-                            {natjecanje.kategorija}
+                            {natjecanje.naziv}
                           </div>
                           <div className="text-lg md:text-xl font-medium drop-shadow-md">
-                            {natjecanje.naziv}
+                            {natjecanje.kategorija}
                           </div>
                         </div>
                       </div>

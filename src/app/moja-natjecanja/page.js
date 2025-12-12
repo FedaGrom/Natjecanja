@@ -414,12 +414,17 @@ export default function MojaNatjecanja() {
                     {/* Preview */}
                     <div className="flex-shrink-0">
                       <div
-                        className="w-32 h-20 rounded border border-gray-200 flex items-center justify-center text-white text-sm font-medium"
+                        className="w-40 h-24 rounded border border-gray-200 flex flex-col items-center justify-center text-white"
                         style={{ 
                           background: natjecanje.gradientStyle || getCategoryGradient(natjecanje.kategorija) 
                         }}
                       >
-                        {natjecanje.kategorija}
+                        <span className="text-base font-extrabold leading-tight drop-shadow-md text-center px-2">
+                          {natjecanje.naziv}
+                        </span>
+                        <span className="text-sm font-medium leading-tight drop-shadow-md text-center px-2">
+                          {natjecanje.kategorija}
+                        </span>
                       </div>
                     </div>
                   </div>
