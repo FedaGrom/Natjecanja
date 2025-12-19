@@ -481,11 +481,7 @@ export default function DetaljiNatjecanja() {
             </span>
             {canEdit && (
               <>
-                {currentPhase === 'prijave' && (
-                  <button onClick={startCompetition} className="bg-amber-500 text-white px-3 py-2 rounded hover:bg-amber-600 transition-colors duration-200">
-                    Počni natjecanje
-                  </button>
-                )}
+                {/* Removed start button from header */}
                 {currentPhase === 'aktivan' && (
                   <button onClick={endCompetition} className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition-colors duration-200">
                     Završi natjecanje
@@ -563,7 +559,6 @@ export default function DetaljiNatjecanja() {
                     }`}
                     title={editMode ? 'Izađi iz edit moda' : 'Uredi sadržaj'}
                   >
-                    {/* Font Awesome edit icon via CSS classes */}
                     <i className="fas fa-edit text-base"></i>
                   </button>
                 )}
@@ -576,6 +571,20 @@ export default function DetaljiNatjecanja() {
                     {natjecanje.kategorija}
                   </div>
                 </div>
+
+                {/* Start button moved to bottom-right of banner */}
+                {canEdit && currentPhase === 'prijave' && (
+                  <button
+                    onClick={startCompetition}
+                    className="absolute bottom-3 right-3 bg-white text-black px-4 py-2 rounded-full hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-md"
+                    title="Pokreni natjecanje"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                      <path d="M6 4l10 6-10 6V4z" />
+                    </svg>
+                    Započni natjecanje
+                  </button>
+                )}
               </div>
               
               {/* Basic info */}
@@ -624,11 +633,7 @@ export default function DetaljiNatjecanja() {
                         Prijave zatvorene
                       </button>
                     )}
-                    {canEdit && currentPhase === 'prijave' && (
-                      <button onClick={startCompetition} className="bg-amber-500 text-white px-4 py-3 rounded hover:bg-amber-600 transition-colors duration-200">
-                        Počni natjecanje
-                      </button>
-                    )}
+                    {/* Removed start button from basic info section */}
                     {canEdit && currentPhase === 'aktivan' && (
                       <button onClick={endCompetition} className="bg-red-500 text-white px-4 py-3 rounded hover:bg-red-600 transition-colors duration-200">
                         Završi natjecanje
@@ -864,14 +869,7 @@ export default function DetaljiNatjecanja() {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">Telefon</label>
-                            <input
-                              type="tel"
-                              value={block.content?.phone || ''}
-                              onChange={(e) => updateContentBlock(block.id, { ...block.content, phone: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#36b977]"
-                              placeholder="+385 91 123 4567"
-                              onDragStart={(e) => e.preventDefault()}
+                            <label
                             />
                           </div>
                         </div>
@@ -1022,19 +1020,17 @@ export default function DetaljiNatjecanja() {
                 <div className="p-4 flex-1 overflow-y-auto">
                   {loadingApplications ? (
                     <div className="text-gray-500">Učitavanje prijava...</div>
-                  ) : prijave.length === 0 ? (
-                    <div className="text-gray-500">Nema prijava još.</div>
+                  ) : prijave.filter(p => p.status === 'approved').length === 0 ? (
+                    <div className="text-gray-500">Nema odobrenih prijava još.</div>
                   ) : (
                     <ul className="space-y-3">
-                      {prijave.map(p => (
+                      {prijave.filter(p => p.status === 'approved').map(p => (
                         <li key={p.id} className="border rounded p-3 bg-gray-50">
                           <div className="flex items-center justify-between">
                             <div className="font-medium text-gray-800">
                               {p.vrstaPrijave === 'group' ? (p.nazivGrupe || 'Ekipa') : `${p.ime || ''} ${p.prezime || ''}`}
                             </div>
-                            <span className={`text-xs px-2 py-0.5 rounded border ${p.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200' : p.status === 'rejected' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>
-                              {p.status || 'pending'}
-                            </span>
+                            {/* Status badge removed for cleaner look */}
                           </div>
                           {p.vrstaPrijave === 'group' && Array.isArray(p.clanoviGrupe) && p.clanoviGrupe.length > 0 && (
                             <div className="mt-2 text-xs text-gray-700">

@@ -88,39 +88,31 @@ export default function MojaNatjecanja() {
 
   const handleDelete = async (natjecanje) => {
     const result = await Swal.fire({
-      title: 'Obriši natjecanje?',
-      html: `
-        <p>Želite obrisati natjecanje:</p>
-        <p><strong>${natjecanje.naziv}</strong></p>
-        <p class="text-red-600"><strong>Ova akcija se ne može poništiti!</strong></p>
-      `,
+      title: 'Jeste li sigurni?',
+      text: `Želite obrisati natjecanje "${natjecanje.naziv}"?`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Da, obriši',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Da, obriši!',
       cancelButtonText: 'Odustani'
     });
 
     if (result.isConfirmed) {
       try {
         await deleteDoc(doc(db, 'natjecanja', natjecanje.id));
-
-        await Swal.fire({
-          icon: 'success',
-          title: 'Obrisano!',
-          text: 'Natjecanje je uspješno obrisano.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-
+        await Swal.fire(
+          'Obrisano!',
+          'Natjecanje je uspješno obrisano.',
+          'success'
+        );
       } catch (error) {
         console.error('Error deleting competition:', error);
-        await Swal.fire({
-          icon: 'error',
-          title: 'Greška',
-          text: 'Dogodila se greška prilikom brisanja natjecanja.'
-        });
+        await Swal.fire(
+          'Greška!',
+          'Dogodila se greška prilikom brisanja natjecanja.',
+          'error'
+        );
       }
     }
   };
@@ -372,7 +364,7 @@ export default function MojaNatjecanja() {
         ) : (
           <div className="space-y-4">
             {filteredNatjecanja.map(natjecanje => (
-              <div key={natjecanje.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div key={natjecanje.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative">
                 <div className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     {/* Competition info */}
@@ -466,20 +458,20 @@ export default function MojaNatjecanja() {
                       </Link>
                     )}
 
-                    {/* Samo za pending i draft natjecanja možemo obrisati */}
-                    {(natjecanje.status === 'pending' || natjecanje.status === 'draft') && (
-                      <button
-                        onClick={() => handleDelete(natjecanje)}
-                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Obriši
-                      </button>
-                    )}
+                    {/* Uklonjen stari inline gumb za brisanje */}
                   </div>
                 </div>
+
+                {/* Floating delete button in bottom-right (all statuses) */}
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(natjecanje); }}
+                  className="absolute bottom-4 right-4 bg-red-500 text-white p-3 rounded-full hover:bg-red-600 shadow-lg transition-colors duration-200"
+                  title="Obriši natjecanje"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </div>
             ))}
           </div>
