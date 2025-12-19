@@ -8,6 +8,55 @@ import { useAuth } from "../../../contexts/AuthContext";
 import Sidebar from "../../components/Sidebar";
 import Swal from 'sweetalert2';
 
+// Helper: serialize contentBlocks for Firestore (avoid nested arrays)
+const serializeContentBlocks = (blocks) => {
+  return (blocks || []).map(b => {
+    if (b.type === 'table' && Array.isArray(b.content?.rows)) {
+      const safeRows = b.content.rows.map(r => ({ cells: Array.isArray(r) ? r : [] }));
+      return {
+        ...b,
+        content: {
+          ...b.content,
+          rows: safeRows
+        }
+      };
+    }
+    return b;
+  });
+};
+
+// Helper: deserialize contentBlocks from Firestore to UI shape
+const deserializeContentBlocks = (blocks) => {
+  return (blocks || []).map(b => {
+    if (b.type === 'table' && Array.isArray(b.content?.rows)) {
+      const uiRows = b.content.rows.map(obj => Array.isArray(obj?.cells) ? obj.cells : []);
+      const normalized = normalizeTableContent({ headers: b.content.headers, rows: uiRows, columnTypes: b.content.columnTypes });
+      return {
+        ...b,
+        content: normalized
+      };
+    }
+    return b;
+  });
+};
+
+// Helper: normalize table content to keep rows length equal to headers length
+const normalizeTableContent = (content) => {
+  const headers = Array.isArray(content?.headers) ? content.headers : ['Naziv'];
+  const cols = Math.max(1, headers.length);
+  const rows = Array.isArray(content?.rows) ? content.rows.map(r => {
+    const base = Array.isArray(r) ? r.slice(0, cols) : [];
+    if (base.length < cols) {
+      return [...base, ...new Array(cols - base.length).fill('')];
+    }
+    return base;
+  }) : [];
+  const columnTypes = Array.isArray(content?.columnTypes) && content.columnTypes.length === cols
+    ? content.columnTypes
+    : new Array(cols).fill('text');
+  return { headers, rows, columnTypes };
+};
+
 export default function DetaljiNatjecanja() {
   const { id } = useParams();
   const router = useRouter();
@@ -66,14 +115,14 @@ export default function DetaljiNatjecanja() {
         if (docSnap.exists()) {
           const data = { id: docSnap.id, ...docSnap.data() };
           setNatjecanje(data);
-          setContentBlocks(data.contentBlocks || []);
+          setContentBlocks(deserializeContentBlocks(data.contentBlocks || []));
         } else {
           // Try localStorage as fallback
           const localNatjecanja = JSON.parse(localStorage.getItem('natjecanja') || '[]');
           const found = localNatjecanja.find(n => n.id === id);
           if (found) {
             setNatjecanje(found);
-            setContentBlocks(found.contentBlocks || []);
+            setContentBlocks(deserializeContentBlocks(found.contentBlocks || []));
           } else {
             router.push('/natjecanja');
           }
@@ -85,7 +134,7 @@ export default function DetaljiNatjecanja() {
         const found = localNatjecanja.find(n => n.id === id);
         if (found) {
           setNatjecanje(found);
-          setContentBlocks(found.contentBlocks || []);
+          setContentBlocks(deserializeContentBlocks(found.contentBlocks || []));
         } else {
           router.push('/natjecanja');
         }
@@ -162,6 +211,8 @@ export default function DetaljiNatjecanja() {
           ? 'Novi tekst...'
           : type === 'kontakt'
           ? { instagram: '', phone: '' }
+          : type === 'table'
+          ? { headers: ['Naziv'], columnTypes: ['text'], rows: [] }
           : ''
     };
     setContentBlocks([...contentBlocks, newBlock]);
@@ -234,7 +285,7 @@ export default function DetaljiNatjecanja() {
     try {
       const docRef = doc(db, 'natjecanja', id);
       await updateDoc(docRef, {
-        contentBlocks: contentBlocks
+        contentBlocks: serializeContentBlocks(contentBlocks)
       });
       await Swal.fire({
         icon: 'success',
@@ -249,10 +300,10 @@ export default function DetaljiNatjecanja() {
       console.error('Error saving changes:', error);
       // Fallback to localStorage
       const localNatjecanja = JSON.parse(localStorage.getItem('natjecanja') || '[]');
-      const updatedNatjecanja = localNatjecija.map(n => 
-        n.id === id ? { ...n, contentBlocks } : n
+      const updatedNatjecanja = localNatjecnja.map(n => 
+        n.id === id ? { ...n, contentBlocks: serializeContentBlocks(contentBlocks) } : n
       );
-      localStorage.setItem('natjecanja', JSON.stringify(updatedNatjecanja));
+      localStorage.setItem('natjecanja', JSON.stringify(updatedNatjecna));
       await Swal.fire({
         icon: 'warning',
         title: 'Spremljeno lokalno',
@@ -909,6 +960,188 @@ export default function DetaljiNatjecanja() {
                       })()
                     )
                   )}
+
+                  {block.type === 'table' && (
+                    editMode && canEdit ? (
+                      <div className="bg-white border-2 border-dashed border-gray-300 rounded p-4">
+                        {/* Controls */}
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <button
+                            onClick={() => {
+                              const headers = [...(block.content?.headers || [])];
+                              headers.push(`Stupac ${headers.length + 1}`);
+                              const columnTypes = [...(block.content?.columnTypes || [])];
+                              columnTypes.push('text');
+                              const normalized = normalizeTableContent({ headers, rows: block.content?.rows, columnTypes });
+                              updateContentBlock(block.id, { ...block.content, ...normalized });
+                            }}
+                            className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm"
+                          >
+                            + Stupac
+                          </button>
+                          {Array.isArray(block.content?.headers) && block.content.headers.length > 1 && (
+                            <button
+                              onClick={() => {
+                                const headers = [...block.content.headers];
+                                headers.pop();
+                                const columnTypes = [...(block.content?.columnTypes || [])].slice(0, headers.length);
+                                const rows = (block.content.rows || []).map(r => r.slice(0, headers.length));
+                                const normalized = normalizeTableContent({ headers, rows, columnTypes });
+                                updateContentBlock(block.id, { ...block.content, ...normalized });
+                              }}
+                              className="px-3 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 text-sm"
+                            >
+                              − Stupac
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              const rows = [...(block.content?.rows || [])];
+                              const cols = Math.max(1, block.content?.headers?.length || 1);
+                              rows.push(new Array(cols).fill(''));
+                              const normalized = normalizeTableContent({ headers: block.content?.headers, rows, columnTypes: block.content?.columnTypes });
+                              updateContentBlock(block.id, { ...block.content, ...normalized });
+                            }}
+                            className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm"
+                          >
+                            + Red
+                          </button>
+                          {Array.isArray(block.content?.rows) && block.content.rows.length > 0 && (
+                            <button
+                              onClick={() => {
+                                const rows = [...block.content.rows];
+                                rows.pop();
+                                const normalized = normalizeTableContent({ headers: block.content?.headers, rows, columnTypes: block.content?.columnTypes });
+                                updateContentBlock(block.id, { ...block.content, ...normalized });
+                              }}
+                              className="px-3 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 text-sm"
+                            >
+                              − Red
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Table editor */}
+                        <div className="overflow-auto">
+                          <table className="min-w-full border border-gray-200 rounded">
+                            <thead>
+                              <tr className="bg-gray-100">
+                                {(block.content?.headers || ['Naziv']).map((h, hi) => (
+                                  <th key={hi} className="border-b border-gray-200 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                                    <div>
+                                      <input
+                                        value={h}
+                                        onChange={(e) => {
+                                          const headers = [...(block.content?.headers || [])];
+                                          headers[hi] = e.target.value;
+                                          const normalized = normalizeTableContent({ headers, rows: block.content?.rows, columnTypes: block.content?.columnTypes });
+                                          updateContentBlock(block.id, { ...block.content, ...normalized });
+                                        }}
+                                        className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-sm"
+                                      />
+                                      <select
+                                        value={(block.content?.columnTypes || [])[hi] || 'text'}
+                                        onChange={(e) => {
+                                          const columnTypes = [...(block.content?.columnTypes || [])];
+                                          columnTypes[hi] = e.target.value;
+                                          const normalized = normalizeTableContent({ headers: block.content?.headers, rows: block.content?.rows, columnTypes });
+                                          updateContentBlock(block.id, { ...block.content, ...normalized });
+                                        }}
+                                        className="mt-1 w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-600"
+                                      >
+                                        <option value="text">Tekst</option>
+                                        <option value="team">Ekipa (iz prijava)</option>
+                                      </select>
+                                    </div>
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(block.content?.rows || []).map((row, ri) => (
+                                <tr key={ri} className="odd:bg-white even:bg-gray-50">
+                                  {row.map((cell, ci) => (
+                                    <td key={ci} className="border-t border-gray-200 px-3 py-2 text-sm text-gray-800">
+                                      {((block.content?.columnTypes || [])[ci] || 'text') === 'team' ? (
+                                        <select
+                                          value={cell}
+                                          onChange={(e) => {
+                                            const rows = block.content.rows.map((r, rIdx) =>
+                                              rIdx === ri ? r.map((c, cIdx) => (cIdx === ci ? e.target.value : c)) : r
+                                            );
+                                            const normalized = normalizeTableContent({ headers: block.content?.headers, rows, columnTypes: block.content?.columnTypes });
+                                            updateContentBlock(block.id, { ...block.content, ...normalized });
+                                          }}
+                                          className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-sm"
+                                        >
+                                          <option value="">— odaberi ekipu —</option>
+                                          {prijave
+                                            .filter(p => p.status === 'approved')
+                                            .map(p => {
+                                              const label = p.vrstaPrijave === 'group' ? (p.nazivGrupe || 'Ekipa') : `${p.ime || ''} ${p.prezime || ''}`.trim();
+                                              return (
+                                                <option key={p.id} value={label}>{label || '—'}</option>
+                                              );
+                                            })}
+                                        </select>
+                                      ) : (
+                                        <input
+                                          value={cell}
+                                          onChange={(e) => {
+                                            const rows = block.content.rows.map((r, rIdx) =>
+                                              rIdx === ri ? r.map((c, cIdx) => (cIdx === ci ? e.target.value : c)) : r
+                                            );
+                                            const normalized = normalizeTableContent({ headers: block.content?.headers, rows, columnTypes: block.content?.columnTypes });
+                                            updateContentBlock(block.id, { ...block.content, ...normalized });
+                                          }}
+                                          className="w-full bg-white border border-gray-300 rounded px-2 py-1"
+                                        />
+                                      )}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                              {(!block.content?.rows || block.content.rows.length === 0) && (
+                                <tr>
+                                  <td className="px-3 py-6 text-center text-sm text-gray-400" colSpan={(block.content?.headers || ['Naziv']).length}>
+                                    Dodajte redove u tablicu
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="overflow-auto">
+                        <table className="min-w-full border border-gray-200 rounded">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              {(block.content?.headers || ['Naziv']).map((h, hi) => (
+                                <th key={hi} className="border-b border-gray-200 px-3 py-2 text-left text-sm font-semibold text-gray-700">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(block.content?.rows || []).map((row, ri) => (
+                              <tr key={ri} className="odd:bg-white even:bg-gray-50">
+                                {row.map((cell, ci) => (
+                                  <td key={ci} className="border-t border-gray-200 px-3 py-2 text-sm text-gray-800">{cell}</td>
+                                ))}
+                              </tr>
+                            ))}
+                            {(!block.content?.rows || block.content.rows.length === 0) && (
+                              <tr>
+                                <td className="px-3 py-6 text-center text-sm text-gray-400" colSpan={(block.content?.headers || ['Naziv']).length}>
+                                  Nema podataka u tablici
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  )}
                 </div>
               ))}
               
@@ -968,6 +1201,15 @@ export default function DetaljiNatjecanja() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                       Kontakt
+                    </button>
+                    <button
+                      onClick={() => addContentBlock('table')}
+                      className="bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600 transition-colors duration-200 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18M3 14h18M3 18h18" />
+                      </svg>
+                      Tablica
                     </button>
                   </div>
                 </div>
