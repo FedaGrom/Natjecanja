@@ -489,7 +489,7 @@ export default function DetaljiNatjecanja() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">{/* prevent horizontal scroll on mobile */}
       {/* Sidebar */}
       <Sidebar 
         isOpen={isSidebarOpen} 
@@ -519,7 +519,7 @@ export default function DetaljiNatjecanja() {
               <span className="text-base font-bold text-white">
                 III. gimnazija, Split
               </span>
-              <span className="text-sm text-white">
+              <span className="text-sm text-white hidden sm:block">{/* hide tagline on xs */}
                 Prirodoslovno-matematička gimnazija
               </span>
             </div>

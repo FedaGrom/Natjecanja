@@ -204,7 +204,7 @@ export default function KreacijaNatjecanja() {
             <span className="text-base font-bold text-white leading-tight">
               III. gimnazija, Split
             </span>
-            <span className="text-sm text-white leading-tight">
+            <span className="text-sm text-white leading-tight hidden sm:block">{/* hide tagline on xs */}
               Prirodoslovno-matematička gimnazija
             </span>
           </div>
@@ -217,7 +217,7 @@ export default function KreacijaNatjecanja() {
             </button>
           </Link>
         </div>
-        <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
+        <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
           KREIRAJ NATJECANJE
         </h1>
         <div className="flex items-center gap-4">
@@ -231,7 +231,11 @@ export default function KreacijaNatjecanja() {
           />
         </div>
       </header>
-      <div className="w-full flex flex-col items-center mt-12 bg-white">
+      {/* Mobile title below header */}
+      <div className="md:hidden px-4 py-3 bg-white border-b border-gray-200">
+        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">KREIRAJ NATJECANJE</h1>
+      </div>
+      <div className="w-full flex flex-col items-center mt-12 bg-white overflow-x-hidden">{/* prevent horizontal scroll on mobile */}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 w-full max-w-md bg-gray-50 p-8 rounded-xl shadow"

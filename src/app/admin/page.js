@@ -231,10 +231,10 @@ export default function AdminPanel() {
         
         // Add user to 'users' collection in Firestore
         await setDoc(doc(db, 'users', userCredential.user.uid), {
-          email: zahtjev.email,
-          ime: zahtjev.ime,
-          prezime: zahtjev.prezime,
-          razred: zahtjev.razred || '',
+          email: zahtjevi.email,
+          ime: zahtjevi.ime,
+          prezime: zahtjevi.prezime,
+          razred: zahtjevi.razred || '',
           registracija: new Date(),
           approvedAt: new Date(),
           approvedBy: user.email,
@@ -580,15 +580,15 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-yellow-50">
       {/* Header */}
-      <header className="sticky top-0 w-full flex items-center justify-between px-6 py-4 bg-amber-600 shadow-md z-50">
-        <div className="flex items-center gap-4">
-          <img src="/slike/logo.jpg.png" alt="Logo" width={48} height={48} className="rounded border-2 border-amber-200 shadow bg-white" />
-          <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
+      <header className="sticky top-0 w-full flex items-center justify-between px-4 md:px-6 py-3 md:py-4 bg-amber-600 shadow-md z-50">
+        <div className="flex items-center gap-3 md:gap-4 min-w-0">
+          <img src="/slike/logo.jpg.png" alt="Logo" width={40} height={40} className="md:w-12 md:h-12 rounded border-2 border-amber-200 shadow bg-white flex-shrink-0" />
+          <h1 className="text-xl md:text-2xl font-bold text-white truncate">Admin Panel</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-white">Dobrodošli, {user?.email}</span>
+        <div className="flex items-center gap-2 md:gap-4 min-w-0">
+          <span className="hidden sm:inline text-white truncate max-w-[40vw]">Dobrodošli, {user?.email}</span>
           <Link href="/natjecanja">
-            <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-amber-100 hover:text-amber-700 transition-colors duration-200 flex items-center gap-2">
+            <button className="bg-white text-[#666] font-bold px-3 md:px-4 py-2 rounded hover:bg-amber-100 hover:text-amber-700 transition-colors duration-200 flex items-center gap-2">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
@@ -599,12 +599,12 @@ export default function AdminPanel() {
       </header>
 
       {/* Navigation Tabs */}
-      <div className="sticky top-20 w-full bg-amber-50 shadow-sm border-b border-amber-100 z-40">
-        <div className="flex justify-center">
-          <button onClick={() => setActiveTab('registrations')} className={`px-6 py-3 font-semibold ${activeTab === 'registrations' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Zahtjevi za registraciju</button>
-          <button onClick={() => setActiveTab('applications')} className={`px-6 py-3 font-semibold ${activeTab === 'applications' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Prijave na natjecanja</button>
-          <button onClick={() => setActiveTab('competitions')} className={`px-6 py-3 font-semibold ${activeTab === 'competitions' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Natjecanja za odobravanje</button>
-          <button onClick={() => setActiveTab('users')} className={`px-6 py-3 font-semibold ${activeTab === 'users' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Korisnici i Admini</button>
+      <div className="sticky top-16 md:top-20 w-full bg-amber-50 shadow-sm border-b border-amber-100 z-40">
+        <div className="flex flex-wrap justify-center">
+          <button onClick={() => setActiveTab('registrations')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'registrations' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Zahtjevi za registraciju</button>
+          <button onClick={() => setActiveTab('applications')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'applications' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Prijave na natjecanja</button>
+          <button onClick={() => setActiveTab('competitions')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'competitions' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Natjecanja za odobravanje</button>
+          <button onClick={() => setActiveTab('users')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'users' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Korisnici i Admini</button>
         </div>
       </div>
 
@@ -836,21 +836,21 @@ export default function AdminPanel() {
                 </button>
               </div>
             </div>
-            
+
             {loadingNatjecanja ? (
               <div className="text-center py-8">
                 <div className="text-lg text-gray-600">Učitavanje natjecanja...</div>
               </div>
             ) : (() => {
-              const filteredNatjecanja = natjecanjaFilter === 'all' ? natjecanja : natjecanja.filter(n => n.status === natjecanjaFilter);
-              
+              const filteredNatjecanja = natjecanjaFilter === 'all' ? natjecanja : natjecnja.filter(n => n.status === natjecanjaFilter);
+
               if (filteredNatjecanja.length === 0) {
                 return (
                   <div className="text-center py-12 bg-white rounded-lg shadow">
                     <div className="text-gray-500 text-lg mb-2">
-                      {natjecanjaFilter === 'all' ? 'Nema natjecanja' : 
-                       natjecanjaFilter === 'pending' ? 'Nema natjecanja na čekanju' :
-                       natjecanjaFilter === 'published' ? 'Nema objavljenih natjecanja' : 'Nema odbačenih natjecanja'}
+                      {natjecanjaFilter === 'all' ? 'Nema natjecanja' :
+                        natjecanjaFilter === 'pending' ? 'Nema natjecanja na čekanju' :
+                          natjecanjaFilter === 'published' ? 'Nema objavljenih natjecanja' : 'Nema odbačenih natjecanja'}
                     </div>
                   </div>
                 );
@@ -864,9 +864,7 @@ export default function AdminPanel() {
                         <div className="flex-1">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h3 className="text-xl font-bold text-gray-800">
-                                {natjecanje.naziv}
-                              </h3>
+                              <h3 className="text-xl font-bold text-gray-800">{natjecanje.naziv}</h3>
                               <p className="text-gray-600 text-lg">Datum: {natjecanje.datum}</p>
                               <p className="text-gray-600">Kategorija: {natjecanje.kategorija}</p>
                               <p className="text-gray-500 text-sm">Kreirao: {natjecanje.createdBy}</p>
@@ -876,43 +874,24 @@ export default function AdminPanel() {
                               natjecanje.status === 'published' ? 'bg-green-100 text-green-800' :
                               'bg-red-100 text-red-800'
                             }`}>
-                              {natjecanje.status === 'pending' ? 'Na čekanju' :
-                               natjecanje.status === 'published' ? 'Objavljeno' : 'Odbačeno'}
+                              {natjecanje.status === 'pending' ? 'Na čekanju' : natjecanje.status === 'published' ? 'Objavljeno' : 'Odbačeno'}
                             </span>
                           </div>
-                          
+
                           {natjecanje.opis && (
                             <div className="mt-4 p-4 bg-gray-50 rounded">
                               <p className="text-sm font-medium text-gray-700 mb-2">Opis:</p>
                               <p className="text-gray-800">{natjecanje.opis}</p>
                             </div>
                           )}
-                          
+
                           <div className="mt-4 text-sm text-gray-500">
-                            <p>Kreirano: {new Date(natjecanje.createdAt).toLocaleDateString('hr-HR', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}</p>
+                            <p>Kreirano: {new Date(natjecanje.createdAt).toLocaleDateString('hr-HR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                             {natjecanje.approvedAt && (
-                              <p>Objavljeno: {new Date(natjecanje.approvedAt).toLocaleDateString('hr-HR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })} (od {natjecanje.approvedBy})</p>
+                              <p>Objavljeno: {new Date(natjecanje.approvedAt).toLocaleDateString('hr-HR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} (od {natjecanje.approvedBy})</p>
                             )}
                             {natjecanje.rejectedAt && (
-                              <p>Odbačeno: {new Date(natjecanje.rejectedAt).toLocaleDateString('hr-HR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })} (od {natjecanje.rejectedBy})</p>
+                              <p>Odbačeno: {new Date(natjecanje.rejectedAt).toLocaleDateString('hr-HR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} (od {natjecanje.rejectedBy})</p>
                             )}
                           </div>
                         </div>
@@ -920,26 +899,11 @@ export default function AdminPanel() {
                         <div className="flex flex-col gap-2 ml-6 min-w-[120px]">
                           {natjecanje.status === 'pending' && (
                             <>
-                              <button
-                                onClick={() => handleApproveNatjecanje(natjecanje)}
-                                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-sm font-medium"
-                              >
-                                ✓ Objavi
-                              </button>
-                              <button
-                                onClick={() => handleRejectNatjecanje(natjecanje)}
-                                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm font-medium"
-                              >
-                                ✗ Odbaci
-                              </button>
+                              <button onClick={() => handleApproveNatjecanje(natjecanje)} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-sm font-medium">✓ Objavi</button>
+                              <button onClick={() => handleRejectNatjecanje(natjecanje)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm font-medium">✗ Odbaci</button>
                             </>
                           )}
-                          <button
-                            onClick={() => handleDeleteNatjecanje(natjecanje)}
-                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm font-medium"
-                          >
-                            🗑 Obriši
-                          </button>
+                          <button onClick={() => handleDeleteNatjecanje(natjecanje)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm font-medium">🗑 Obriši</button>
                         </div>
                       </div>
                     </div>
@@ -950,102 +914,9 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* Korisnici i Admini */}
         {activeTab === 'users' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Korisnici i Admini</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setLoadingUsers(true)} // Reload users
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm font-medium"
-                >
-                  ⟳ Osvježi
-                </button>
-              </div>
-            </div>
-            
-            {loadingUsers ? (
-              <div className="text-center py-8">
-                <div className="text-lg text-gray-600">Učitavanje korisnika...</div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Admins list - always show admins at the top */}
-                {admins.length > 0 && (
-                  <div>
-                    <div className="text-lg font-semibold text-gray-800 mb-4">Admini ({admins.length})</div>
-                    <div className="bg-white rounded-lg shadow-md divide-y divide-amber-200">
-                      {admins.map(admin => (
-                        <div key={admin.uid} className="flex items-center justify-between p-4 hover:bg-amber-50 transition">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                              <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            </div>
-                            <div className="text-sm">
-                              <div className="font-medium text-gray-800">{admin.name || admin.email}</div>
-                              <div className="text-gray-500">{admin.role}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleRemoveAdmin(admin.uid, admin.email)}
-                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors text-xs font-medium"
-                            >
-                              ⊖ Ukloni admin prava
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Users list */}
-                <div>
-                  <div className="text-lg font-semibold text-gray-800 mb-4">
-                    Korisnici ({users.length})
-                    <span className="text-sm text-gray-500 ml-2">
-                      (uključuje sve aktivne korisnike i odobrene registracije)
-                    </span>
-                  </div>
-                  <div className="bg-white rounded-lg shadow-md divide-y divide-amber-200">
-                    {users.map(user => (
-                      <div key={user.uid} className="flex items-center justify-between p-4 hover:bg-amber-50 transition">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          </div>
-                          <div className="text-sm">
-                            <div className="font-medium text-gray-800">{user.ime} {user.prezime}</div>
-                            <div className="text-gray-500">{user.email}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {user.source === 'registrationRequests' && user.status === 'approved' && (
-                            <span className="text-xs font-semibold bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                              Odobren korisnik
-                            </span>
-                          )}
-                          <button
-                            onClick={() => handleMakeAdmin(user.email, user.uid)}
-                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs font-medium"
-                          >
-                            ⊕ Dodijeli admin prava
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            <div className="bg-white rounded-lg shadow p-6 text-gray-700">Upravljanje korisnicima privremeno nije dostupno.</div>
           </div>
         )}
       </div>

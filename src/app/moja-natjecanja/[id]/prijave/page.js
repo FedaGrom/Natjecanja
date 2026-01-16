@@ -297,7 +297,7 @@ export default function UpravljajPrijavama() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">{/* prevent horizontal scroll on mobile */}
       {/* Header */}
       <header className="sticky top-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">
         <div className="flex items-center justify-between px-4 py-3">
@@ -318,13 +318,13 @@ export default function UpravljajPrijavama() {
               <span className="text-base font-bold text-white">
                 III. gimnazija, Split
               </span>
-              <span className="text-sm text-white">
+              <span className="text-sm text-white hidden sm:block">{/* hide tagline on xs */}
                 Upravljanje prijavama
               </span>
             </div>
           </div>
           
-          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl lg:text-2xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
+          <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl lg:text-2xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
             PRIJAVE NA NATJECANJE
           </h1>
           
@@ -338,6 +338,11 @@ export default function UpravljajPrijavama() {
           </Link>
         </div>
       </header>
+
+      {/* Mobile title below header */}
+      <div className="md:hidden px-4 py-3 bg-white border-b border-gray-200">
+        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">PRIJAVE NA NATJECANJE</h1>
+      </div>
 
       {/* Main content */}
       <div className="max-w-6xl mx-auto p-6">

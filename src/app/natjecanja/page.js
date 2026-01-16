@@ -175,7 +175,7 @@ export default function Natjecanja() {
   });
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden pt-16">\
+    <div className="min-h-screen bg-white overflow-x-hidden pt-16">{/* overflow fix */}
       
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">
@@ -193,7 +193,7 @@ export default function Natjecanja() {
               <span className="text-sm md:text-base font-bold text-white leading-tight">
                 III. gimnazija, Split
               </span>
-              <span className="text-xs md:text-sm text-white leading-tight hidden sm:block">
+              <span className="text-xs md:text-sm text-white leading-tight hidden sm:block">{/* hide tagline on xs */}
                 Prirodoslovno-matematička gimnazija
               </span>
             </div>
@@ -315,14 +315,14 @@ export default function Natjecanja() {
       </header>
 
       {/* Mobilni naslov ispod headera */}
-      <div className="md:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-40 pt-10">
+      <div className="md:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-40">{/* removed extra pt-10 */}
         <h1 className="text-2xl font-extrabold text-[#36b977] text-center tracking-wide">
           NATJECANJA
         </h1>
       </div>
 
       {/* Mobile filter dropdown */}
-      <div className="md:hidden fixed top-28 left-0 right-0 bg-white border-b border-gray-200 z-30 pt-10">
+      <div className="md:hidden fixed top-28 left-0 right-0 bg-white border-b border-gray-200 z-30">{/* removed extra pt-10 */}
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
           className="w-full flex items-center justify-between px-4 py-3 text-left font-medium text-gray-700 hover:bg-gray-50"
@@ -456,8 +456,9 @@ export default function Natjecanja() {
               return (
                 <div 
                   key={natjecanje.id} 
-                  className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300"
+                  className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300 pb-20 md:pb-6"
                 >
+                  {/* add bottom padding for mobile to avoid overlap */}
                   {/* Use gradient background instead of image */}
                   <a href={`/natjecanja/${natjecanje.id}`} className="w-full flex justify-center mb-6 block">
                     {natjecanje.slika ? (
@@ -505,7 +506,7 @@ export default function Natjecanja() {
                     <p className="text-sm text-gray-600 mb-3 max-w-2xl">{natjecanje.opis}</p>
                   )}
 
-                  {/* Registration button in bottom right corner */}
+                  {/* Registration button: absolute on md+, stacked block on mobile */}
                   {prijaveOtvorene ? (
                     natjecanje.tipPrijave === 'custom' && natjecanje.prijavaLink ? (
                       <button
@@ -514,7 +515,7 @@ export default function Natjecanja() {
                           e.stopPropagation();
                           handlePrijava(natjecanje);
                         }}
-                        className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
+                        className="md:absolute md:bottom-4 md:right-4 w-full md:w-auto mt-4 md:mt-0 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center justify-center md:justify-start gap-2 shadow-lg z-10"
                         title="Otvori vanjski link za prijavu"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -526,7 +527,7 @@ export default function Natjecanja() {
                       <a
                         href={`/natjecanja/${natjecanje.id}/prijava`}
                         onClick={(e) => { e.stopPropagation(); /* allow anchor */ }}
-                        className="absolute bottom-4 right-4 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10 no-underline"
+                        className="md:absolute md:bottom-4 md:right-4 w-full md:w-auto mt-4 md:mt-0 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center justify-center md:justify-start gap-2 shadow-lg z-10 no-underline"
                         title="Prijavi se na natjecanje"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -539,23 +540,23 @@ export default function Natjecanja() {
                     <button
                       type="button"
                       disabled
-                      className="absolute bottom-4 right-4 bg-gray-300 text-gray-600 px-4 py-2 rounded-lg cursor-not-allowed transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
+                      className="md:absolute md:bottom-4 md:right-4 w-full md:w-auto mt-4 md:mt-0 bg-gray-300 text-gray-600 px-4 py-2 rounded-lg cursor-not-allowed transition-colors duration-200 flex items-center justify-center md:justify-start gap-2 shadow-lg z-10"
                       title="Prijave su zatvorene"
                     >
                       Prijave zatvorene
                     </button>
                   )}
                   
-                  {/* Admin controls */}
+                  {/* Admin controls: absolute on md+, stacked on mobile */}
                   {isAdmin && (
-                    <div className="absolute bottom-4 left-4 flex gap-2">
+                    <div className="md:absolute md:bottom-4 md:left-4 w-full md:w-auto mt-3 md:mt-0 flex flex-col md:flex-row gap-2">
                       <button
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           handleDeleteNatjecanje(natjecanje.id, natjecanje.naziv);
                         }}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center gap-2 shadow-lg z-10"
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center justify-center md:justify-start gap-2 shadow-lg z-10"
                         title="Obriši natjecanje"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
