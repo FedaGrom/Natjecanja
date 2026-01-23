@@ -18,23 +18,25 @@ export default function Natjecanja() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, isAdmin, loading, logout } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
   // Close mobile menus when clicking outside
   useEffect(() => {
-    if (!isMenuOpen && !isFilterOpen) return;
+    if (!isMenuOpen && !isFilterOpen && !isUserMenuOpen) return;
     
     const handleClickOutside = (event) => {
       // Check if click is outside the menus
-      const isClickInsideMenu = event.target.closest('.mobile-menu') || event.target.closest('.mobile-filter');
+      const isClickInsideMenu = event.target.closest('.mobile-menu') || event.target.closest('.mobile-filter') || event.target.closest('.user-menu-container');
       if (!isClickInsideMenu) {
         setIsMenuOpen(false);
         setIsFilterOpen(false);
+        setIsUserMenuOpen(false);
       }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [isMenuOpen, isFilterOpen]);
+  }, [isMenuOpen, isFilterOpen, isUserMenuOpen]);
 
   // Firestore data loading - get all competitions and filter on client side
   useEffect(() => {
@@ -244,72 +246,6 @@ export default function Natjecanja() {
                 </Link>
               )}
             </div>
-
-            {/* Mobile hamburger */}
-            <div className="md:hidden">
-              {user ? (
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="bg-white text-[#666] p-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-              ) : (
-                <Link href="/login">
-                  <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
-                    Prijava
-                  </button>
-                </Link>
-              )}
-              
-              {/* Mobile dropdown menu */}
-              {isMenuOpen && user && (
-                <div className="mobile-menu absolute right-4 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 min-w-[200px]">
-                  <div className="p-4 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">
-                      {user.email} {isAdmin && '(Admin)'}
-                    </span>
-                  </div>
-                  <Link href="/moja-natjecanja">
-                    <button 
-                      onClick={() => setIsMenuOpen(false)}
-                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors duration-200"
-                    >
-                      Moja natjecanja
-                    </button>
-                  </Link>
-                  <Link href="/kreacija">
-                    <button 
-                      onClick={() => setIsMenuOpen(false)}
-                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-[#36b977] hover:text-white transition-colors duration-200"
-                    >
-                      Kreiraj natjecanje
-                    </button>
-                  </Link>
-                  {isAdmin && (
-                    <Link href="/admin">
-                      <button 
-                        onClick={() => setIsMenuOpen(false)}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-500 hover:text-white transition-colors duration-200"
-                      >
-                        Admin panel
-                      </button>
-                    </Link>
-                  )}
-                  <button 
-                    onClick={() => {
-                      logout();
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-500 hover:text-white transition-colors duration-200"
-                  >
-                    Odjavi se
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </header>
@@ -328,7 +264,7 @@ export default function Natjecanja() {
           className="w-full flex items-center justify-between px-4 py-3 text-left font-medium text-gray-700 hover:bg-gray-50"
         >
           <span>Filteri i pretraga</span>
-          <svg className={`w-5 h-5 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`${isFilterOpen ? 'rotate-180' : ''} w-5 h-5 transition-transform`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -398,6 +334,51 @@ export default function Natjecanja() {
         isOpen={isSidebarOpen} 
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
+
+      {/* Mobile user menu toggle aligned with calendar burger */}
+      <div className="lg:hidden fixed top-20 right-4 z-50 user-menu-container">
+        <button
+          onClick={(e) => { e.stopPropagation(); setIsUserMenuOpen(v => !v); }}
+          className="bg-white text-[#666] p-2 rounded-lg shadow-lg hover:bg-gray-100 transition-colors duration-200"
+          aria-label="Korisnički izbornik"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 1112 21a8.963 8.963 0 01-6.879-3.196z" />
+          </svg>
+        </button>
+        {isUserMenuOpen && (
+          <div className="user-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+            {user ? (
+              <div className="py-2 text-sm">
+                <div className="px-4 py-2 border-b border-gray-200 text-gray-600">
+                  {user.email} {isAdmin && '(Admin)'}
+                </div>
+                <Link href="/moja-natjecanja">
+                  <button className="w-full text-left px-4 py-2 hover:bg-blue-50">Moja natjecanja</button>
+                </Link>
+                <Link href="/kreacija">
+                  <button className="w-full text-left px-4 py-2 hover:bg-green-50">Kreiraj natjecanje</button>
+                </Link>
+                {isAdmin && (
+                  <Link href="/admin">
+                    <button className="w-full text-left px-4 py-2 hover:bg-purple-50">Admin panel</button>
+                  </Link>
+                )}
+                <button 
+                  onClick={() => { logout(); setIsUserMenuOpen(false); }}
+                  className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                >
+                  Odjavi se
+                </button>
+              </div>
+            ) : (
+              <Link href="/login">
+                <button className="w-full text-left px-4 py-2">Prijava</button>
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Desktop Right-side filter panel */}
       <aside className="hidden lg:block fixed right-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-l border-gray-100 shadow-md overflow-auto z-20 rounded-l-xl pt-4 transition-all duration-300">
