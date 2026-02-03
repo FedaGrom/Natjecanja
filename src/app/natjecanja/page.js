@@ -177,8 +177,35 @@ export default function Natjecanja() {
   });
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden pt-16">{/* overflow fix */}
-      
+    <div className="min-h-screen bg-white overflow-x-hidden pt-16">
+      {/* Dekorativne pozadinske slike */}
+      <div aria-hidden="true" className="pointer-events-none">
+        {/* Top-right pozadina (iza sadržaja), poravnata uz desni sidebar */}
+        <div
+          className="hidden md:block absolute top-16 right-0 lg:right-64 z-10 opacity-70"
+          style={{
+            width: '500px',
+            height: '500px',
+            backgroundImage: 'url(/slike/top.png)',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'contain',
+            backgroundPosition: 'top right'
+          }}
+        />
+        {/* Bottom-left pozadina (fiksirano za dno), poravnata uz lijevi sidebar */}
+        <div
+          className="fixed bottom-0 left-0 lg:left-80 z-10 opacity-70"
+          style={{
+            width: '500px',
+            height: '500px',
+            backgroundImage: 'url(/slike/bottom.png)',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'contain',
+            backgroundPosition: 'bottom left'
+          }}
+        />
+      </div>
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">
         <div className="flex items-center justify-between px-4 py-2">
@@ -426,8 +453,8 @@ export default function Natjecanja() {
 
       {/* Main content area */}
       <div
-        className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:pl-80 lg:pr-64 flex items-center justify-center`}
-        style={{ minHeight: 'calc(100vh - 6rem)' }}
+        className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:pl-80 lg:pr-64 flex items-center justify-center z-30`}
+        style={{ minHeight: 'calc(100vh - 6rem)', position: 'relative' }}
       >
         <div className="max-w-4xl w-full mx-auto flex flex-col items-center justify-center gap-6 py-8 px-4">
           {filtriranaNatjecanja.length > 0 ? (
