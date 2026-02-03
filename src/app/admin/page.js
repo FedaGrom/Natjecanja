@@ -578,7 +578,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-yellow-50">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 w-full flex items-center justify-between px-4 md:px-6 py-3 md:py-4 bg-amber-600 shadow-md z-50">
         <div className="flex items-center gap-3 md:gap-4 min-w-0">
@@ -615,28 +615,28 @@ export default function AdminPanel() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-amber-900">Zahtjevi za registraciju</h2>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 justify-end max-w-full">
                 <button
                   onClick={() => setFilter('pending')}
-                  className={`px-4 py-2 rounded ${filter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`px-3 py-2 rounded text-sm w-auto ${filter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 >
                   Na čekanju ({zahtjevi.filter(z => z.status === 'pending').length})
                 </button>
                 <button
                   onClick={() => setFilter('approved')}
-                  className={`px-4 py-2 rounded ${filter === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`px-3 py-2 rounded text-sm w-auto ${filter === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 >
                   Odobreni ({zahtjevi.filter(z => z.status === 'approved').length})
                 </button>
                 <button
                   onClick={() => setFilter('rejected')}
-                  className={`px-4 py-2 rounded ${filter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`px-3 py-2 rounded text-sm w-auto ${filter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 >
                   Odbačeni ({zahtjevi.filter(z => z.status === 'rejected').length})
                 </button>
                 <button
                   onClick={() => setFilter('all')}
-                  className={`px-4 py-2 rounded ${filter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`px-3 py-2 rounded text-sm w-auto ${filter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 >
                   Svi ({zahtjevi.length})
                 </button>
@@ -666,8 +666,8 @@ export default function AdminPanel() {
                 <div className="space-y-4">
                   {filteredZahtjevi.map((zahtjev) => (
                     <div key={zahtjev.id} className="bg-white rounded-lg shadow-md p-6 border border-amber-200 hover:border-amber-300 hover:shadow-lg transition">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
+                      <div className="flex flex-col md:flex-row md:justify-between items-start gap-3">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between">
                             <div>
                               <h3 className="text-xl font-bold text-gray-800">
@@ -690,7 +690,7 @@ export default function AdminPanel() {
                           
                           <div className="mt-4 p-4 bg-amber-50 rounded">
                             <p className="text-sm font-medium text-amber-900 mb-2">Razlog registracije:</p>
-                            <p className="text-gray-800">{zahtjev.razlog}</p>
+                            <p className="text-gray-800 break-words whitespace-normal">{zahtjev.razlog}</p>
                           </div>
                           
                           <div className="mt-4 text-sm text-gray-500">
@@ -722,7 +722,8 @@ export default function AdminPanel() {
                           </div>
                         </div>
                         
-                        <div className="flex flex-col gap-2 ml-6 min-w-[120px]">
+                        {/* Actions: on mobile, place as a row below content */}
+                        <div className="flex w-full md:w-auto flex-row md:flex-col gap-2 md:ml-6 flex-shrink-0 justify-end">
                           {zahtjev.status === 'pending' && (
                             <>
                               <button
@@ -741,9 +742,12 @@ export default function AdminPanel() {
                           )}
                           <button
                             onClick={() => handleDelete(zahtjev)}
-                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm font-medium"
+                            className="bg-red-500 text-white p-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center justify-center shadow-lg"
+                            title="Obriši"
                           >
-                            🗑 Obriši
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                           </button>
                         </div>
                       </div>
@@ -809,28 +813,28 @@ export default function AdminPanel() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Natjecanja za odobravanje</h2>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 justify-end max-w-full">
                 <button
                   onClick={() => setNatjecanjaFilter('pending')}
-                  className={`px-4 py-2 rounded ${natjecanjaFilter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 >
                   Na čekanju ({natjecanja.filter(n => n.status === 'pending').length})
                 </button>
                 <button
                   onClick={() => setNatjecanjaFilter('published')}
-                  className={`px-4 py-2 rounded ${natjecanjaFilter === 'published' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'published' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 >
                   Objavljena ({natjecanja.filter(n => n.status === 'published').length})
                 </button>
                 <button
                   onClick={() => setNatjecanjaFilter('rejected')}
-                  className={`px-4 py-2 rounded ${natjecanjaFilter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 >
                   Odbačena ({natjecanja.filter(n => n.status === 'rejected').length})
                 </button>
                 <button
                   onClick={() => setNatjecanjaFilter('all')}
-                  className={`px-4 py-2 rounded ${natjecanjaFilter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 >
                   Sva ({natjecanja.length})
                 </button>
@@ -842,7 +846,7 @@ export default function AdminPanel() {
                 <div className="text-lg text-gray-600">Učitavanje natjecanja...</div>
               </div>
             ) : (() => {
-              const filteredNatjecanja = natjecanjaFilter === 'all' ? natjecanja : natjecnja.filter(n => n.status === natjecanjaFilter);
+              const filteredNatjecanja = natjecanjaFilter === 'all' ? natjecanja : natjecanja.filter(n => n.status === natjecanjaFilter);
 
               if (filteredNatjecanja.length === 0) {
                 return (
@@ -860,8 +864,8 @@ export default function AdminPanel() {
                 <div className="space-y-4">
                   {filteredNatjecanja.map((natjecanje) => (
                     <div key={natjecanje.id} className="bg-white rounded-lg shadow-md p-6 border border-amber-200 hover:border-amber-300 hover:shadow-lg transition">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
+                      <div className="flex flex-col md:flex-row md:justify-between items-start gap-3">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between">
                             <div>
                               <h3 className="text-xl font-bold text-gray-800">{natjecanje.naziv}</h3>
@@ -881,7 +885,7 @@ export default function AdminPanel() {
                           {natjecanje.opis && (
                             <div className="mt-4 p-4 bg-gray-50 rounded">
                               <p className="text-sm font-medium text-gray-700 mb-2">Opis:</p>
-                              <p className="text-gray-800">{natjecanje.opis}</p>
+                              <p className="text-gray-800 break-words whitespace-normal">{natjecanje.opis}</p>
                             </div>
                           )}
 
@@ -896,14 +900,19 @@ export default function AdminPanel() {
                           </div>
                         </div>
                         
-                        <div className="flex flex-col gap-2 ml-6 min-w-[120px]">
+                        {/* Actions: on mobile, place as a row below content */}
+                        <div className="flex w-full md:w-auto flex-row md:flex-col gap-2 md:ml-6 flex-shrink-0 justify-end">
                           {natjecanje.status === 'pending' && (
                             <>
                               <button onClick={() => handleApproveNatjecanje(natjecanje)} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-sm font-medium">✓ Objavi</button>
                               <button onClick={() => handleRejectNatjecanje(natjecanje)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm font-medium">✗ Odbaci</button>
                             </>
                           )}
-                          <button onClick={() => handleDeleteNatjecanje(natjecanje)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm font-medium">🗑 Obriši</button>
+                          <button onClick={() => handleDeleteNatjecanje(natjecanje)} className="bg-red-500 text-white p-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center justify-center shadow-lg" title="Obriši">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
                         </div>
                       </div>
                     </div>

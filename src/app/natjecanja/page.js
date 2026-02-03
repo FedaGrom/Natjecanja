@@ -273,6 +273,53 @@ export default function Natjecanja() {
                 </Link>
               )}
             </div>
+
+            {/* Mobile verzija - korisnički izbornik u headeru */}
+            <div className="md:hidden relative flex items-center gap-2">
+              {/* Postojeći burger (ako postoji) neka stoji desno od user ikone kroz gap-2 */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsUserMenuOpen(v => !v); }}
+                className="bg-white text-[#666] p-2 rounded-lg shadow-lg hover:bg-gray-100 transition-colors duration-200"
+                aria-label="Korisnički izbornik"
+              >
+                {/* User silhouette icon */}
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zM4 20a8 8 0 0116 0v1H4v-1z" />
+                </svg>
+              </button>
+              {isUserMenuOpen && (
+                <div className="absolute right-0 top-10 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50 user-menu-container">
+                  {user ? (
+                    <div className="py-2 text-sm">
+                      <div className="px-4 py-2 border-b border-gray-200 text-gray-600">
+                        {user.email} {isAdmin && '(Admin)'}
+                      </div>
+                      <Link href="/moja-natjecanja">
+                        <button className="w-full text-left px-4 py-2 hover:bg-blue-50">Moja natjecanja</button>
+                      </Link>
+                      <Link href="/kreacija">
+                        <button className="w-full text-left px-4 py-2 hover:bg-green-50">Kreiraj natjecanje</button>
+                      </Link>
+                      {isAdmin && (
+                        <Link href="/admin">
+                          <button className="w-full text-left px-4 py-2 hover:bg-purple-50">Admin panel</button>
+                        </Link>
+                      )}
+                      <button 
+                        onClick={() => { logout(); setIsUserMenuOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                      >
+                        Odjavi se
+                      </button>
+                    </div>
+                  ) : (
+                    <Link href="/login">
+                      <button className="w-full text-left px-4 py-2">Prijava</button>
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -361,51 +408,6 @@ export default function Natjecanja() {
         isOpen={isSidebarOpen} 
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
-
-      {/* Mobile user menu toggle aligned with calendar burger */}
-      <div className="lg:hidden fixed top-20 right-4 z-50 user-menu-container">
-        <button
-          onClick={(e) => { e.stopPropagation(); setIsUserMenuOpen(v => !v); }}
-          className="bg-white text-[#666] p-2 rounded-lg shadow-lg hover:bg-gray-100 transition-colors duration-200"
-          aria-label="Korisnički izbornik"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 1112 21a8.963 8.963 0 01-6.879-3.196z" />
-          </svg>
-        </button>
-        {isUserMenuOpen && (
-          <div className="user-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            {user ? (
-              <div className="py-2 text-sm">
-                <div className="px-4 py-2 border-b border-gray-200 text-gray-600">
-                  {user.email} {isAdmin && '(Admin)'}
-                </div>
-                <Link href="/moja-natjecanja">
-                  <button className="w-full text-left px-4 py-2 hover:bg-blue-50">Moja natjecanja</button>
-                </Link>
-                <Link href="/kreacija">
-                  <button className="w-full text-left px-4 py-2 hover:bg-green-50">Kreiraj natjecanje</button>
-                </Link>
-                {isAdmin && (
-                  <Link href="/admin">
-                    <button className="w-full text-left px-4 py-2 hover:bg-purple-50">Admin panel</button>
-                  </Link>
-                )}
-                <button 
-                  onClick={() => { logout(); setIsUserMenuOpen(false); }}
-                  className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
-                >
-                  Odjavi se
-                </button>
-              </div>
-            ) : (
-              <Link href="/login">
-                <button className="w-full text-left px-4 py-2">Prijava</button>
-              </Link>
-            )}
-          </div>
-        )}
-      </div>
 
       {/* Desktop Right-side filter panel */}
       <aside className="hidden lg:block fixed right-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-l border-gray-100 shadow-md overflow-auto z-20 rounded-l-xl pt-4 transition-all duration-300">
