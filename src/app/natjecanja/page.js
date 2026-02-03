@@ -252,7 +252,7 @@ export default function Natjecanja() {
                     </Link>
                     {isAdmin && (
                       <Link href="/admin">
-                        <button className="bg-purple-600 text-white font-bold px-4 py-2 rounded hover:bg-purple-700 transition-colors duration-200">
+                        <button className="bg-[#eab308] text-white font-bold px-4 py-2 rounded hover:bg-[#AA6C39] transition-colors duration-200">
                           Admin panel
                         </button>
                       </Link>
