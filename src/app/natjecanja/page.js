@@ -345,33 +345,33 @@ export default function Natjecanja() {
                 </svg>
               </button>
               {isUserMenuOpen && (
-                <div className="absolute right-0 top-10 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50 user-menu-container">
+                <div className="absolute right-0 top-10 w-64 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-[70] user-menu-container">
                   {user ? (
-                    <div className="py-2 text-sm">
-                      <div className="px-4 py-2 border-b border-gray-200 text-gray-600">
+                    <div className="py-2">
+                      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 text-gray-900 text-sm">
                         {user.email} {isAdmin && '(Admin)'}
                       </div>
                       <Link href="/moja-natjecanja">
-                        <button className="w-full text-left px-4 py-2 hover:bg-blue-50">Moja natjecanja</button>
+                        <button className="w-full text-left px-4 py-3 text-gray-900 hover:bg-gray-100">Moja natjecanja</button>
                       </Link>
                       <Link href="/kreacija">
-                        <button className="w-full text-left px-4 py-2 hover:bg-green-50">Kreiraj natjecanje</button>
+                        <button className="w-full text-left px-4 py-3 text-gray-900 hover:bg-gray-100">Kreiraj natjecanje</button>
                       </Link>
                       {isAdmin && (
                         <Link href="/admin">
-                          <button className="w-full text-left px-4 py-2 hover:bg-purple-50">Admin panel</button>
+                          <button className="w-full text-left px-4 py-3 text-gray-900 hover:bg-gray-100">Admin panel</button>
                         </Link>
                       )}
                       <button 
                         onClick={() => { logout(); setIsUserMenuOpen(false); }}
-                        className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                        className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
                       >
                         Odjavi se
                       </button>
                     </div>
                   ) : (
                     <Link href="/login">
-                      <button className="w-full text-left px-4 py-2">Prijava</button>
+                      <button className="w-full text-left px-4 py-3 text-gray-900 hover:bg-gray-100">Prijava</button>
                     </Link>
                   )}
                 </div>
