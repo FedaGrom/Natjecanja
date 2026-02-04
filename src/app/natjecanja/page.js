@@ -523,7 +523,7 @@ export default function Natjecanja() {
               return (
                 <div 
                   key={natjecanje.id} 
-                  className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300 pb-20 md:pb-6"
+                  className="w-full sm:w-10/12 md:w-9/12 lg:w-11/12 max-w-6xl mx-auto min-h-[240px] bg-white rounded-xl shadow-xl p-6 md:p-10 border-2 border-[#36b977] flex flex-col items-center justify-center text-center relative group hover:shadow-2xl transition-shadow duration-300 pb-16 md:pb-20 lg:pb-20"
                 >
                   {/* add bottom padding for mobile to avoid overlap */}
                   {/* Use gradient background instead of image */}
