@@ -477,7 +477,7 @@ export default function DetaljiNatjecanja() {
   };
 
   const handleSetImageUrl = async (natjecanje) => {
-    if (!isAdmin) return;
+    if (!canEdit) return;
     const result = await Swal.fire({
       title: 'Uredi sliku',
       input: 'url',
@@ -520,7 +520,7 @@ export default function DetaljiNatjecanja() {
 
   // Admin-only: add gallery image via URL (stores in natjecanja/{id}.slike as array of strings)
   const handleAddGalleryImageUrl = async () => {
-    if (!isAdmin) return;
+    if (!canEdit) return;
     const result = await Swal.fire({
       title: 'Dodaj URL slike u galeriju',
       input: 'url',
@@ -556,7 +556,7 @@ export default function DetaljiNatjecanja() {
 
   // Admin-only: remove a specific gallery image URL
   const handleRemoveGalleryImageUrl = async (url) => {
-    if (!isAdmin) return;
+    if (!canEdit) return;
     const confirm = await Swal.fire({
       title: 'Ukloniti sliku?',
       text: 'Ova radnja će ukloniti sliku iz galerije.',
@@ -677,22 +677,35 @@ export default function DetaljiNatjecanja() {
       </header>
 
       {/* Banner/image section */}
-      {natjecanje?.slika ? (
-        <img
-          src={natjecanje.slika}
-          alt={natjecanje.naziv}
-          className="w-full h-64 md:h-80 object-cover rounded border border-gray-200"
-          loading="lazy"
-          decoding="async"
-        />
-      ) : (
-        <div
-          className="w-full h-64 md:h-80 rounded border border-gray-200"
-          style={{ 
-            background: natjecanje?.gradientStyle || getCategoryGradient(natjecanje.kategorija),
-          }}
-        />
-      )}
+      <div className="relative">
+        {natjecanje?.slika ? (
+          <img
+            src={natjecanje.slika}
+            alt={natjecanje.naziv}
+            className="w-full h-64 md:h-80 object-cover rounded border border-gray-200"
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <div
+            className="w-full h-64 md:h-80 rounded border border-gray-200"
+            style={{ 
+              background: natjecanje?.gradientStyle || getCategoryGradient(natjecanje.kategorija),
+            }}
+          />
+        )}
+        {/* Gumb vidljiv kad korisnik smije uređivati; z-index da ne bude ispod headera */}
+        {canEdit && (
+          <button
+            onClick={() => handleSetImageUrl(natjecanje)}
+            className="absolute top-3 right-3 z-[110] bg-amber-200 text-black px-3 py-2 rounded shadow hover:bg-white transition-colors duration-200"
+            title="Uredi sliku bannera"
+            type="button"
+          >
+            Uredi sliku
+          </button>
+        )}
+      </div>
 
       {/* Main content with right applications list */}
       <div className="overflow-x-hidden">
