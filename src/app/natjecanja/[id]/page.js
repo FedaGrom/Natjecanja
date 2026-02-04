@@ -508,7 +508,7 @@ export default function DetaljiNatjecanja() {
               className="rounded border-2 border-gray-300 shadow bg-white"
             />
             <Link href="/natjecanja">
-              <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200 flex items-center gap-2">
+              <button className="bg-white text-gray-900 font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200 flex items-center gap-2">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                 </svg>
@@ -564,7 +564,7 @@ export default function DetaljiNatjecanja() {
                   <button
                     onClick={saveChanges}
                     disabled={saving}
-                    className={`absolute top-3 right-16 px-3 py-2 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 ${saving ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-white text-[#666] hover:bg-[#36b977] hover:text-white'}`}
+                    className={`absolute top-3 right-16 px-3 py-2 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 ${saving ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-white text-gray-900 hover:bg-[#36b977] hover:text-white'}`}
                     title={saving ? 'Spremanje...' : 'Spremi promjene'}
                   >
                     <svg className="w-5 h-5" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">
@@ -606,7 +606,7 @@ export default function DetaljiNatjecanja() {
                       }
                     }}
                     className={`absolute top-3 right-3 px-3 py-2 rounded-full shadow-md transition-colors duration-200 flex items-center gap-2 ${
-                      editMode ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-white text-[#666] hover:bg-[#36b977] hover:text-white'
+                      editMode ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-white text-gray-900 hover:bg-[#36b977] hover:text-white'
                     }`}
                     title={editMode ? 'Izađi iz edit moda' : 'Uredi sadržaj'}
                   >
@@ -639,10 +639,10 @@ export default function DetaljiNatjecanja() {
               </div>
               
               {/* Basic info */}
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <div className="bg-gray-50 rounded-lg p-6 mb-6 text-gray-800">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-bold text-[#666] mb-2">Osnovne informacije</h3>
+                    <h3 className="font-bold text-gray-900 mb-2">Osnovne informacije</h3>
                     <p><strong>Naziv:</strong> {natjecanje.naziv}</p>
                     <p><strong>Datum:</strong> {natjecanje.datum}</p>
                     <p><strong>Kategorija:</strong> {natjecanje.kategorija}</p>
@@ -881,12 +881,12 @@ export default function DetaljiNatjecanja() {
                         type="text"
                         value={block.content}
                         onChange={(e) => updateContentBlock(block.id, e.target.value)}
-                        className="w-full text-2xl font-semibold text-[#666] border-2 border-dashed border-gray-300 rounded p-2 bg-transparent focus:outline-none focus:border-[#36b977] cursor-text"
+                        className="w-full text-2xl font-semibold text-gray-900 border-2 border-dashed border-gray-300 rounded p-2 bg-transparent focus:outline-none focus:border-[#36b977] cursor-text"
                         placeholder="Unesite podnaslov..."
                         onDragStart={(e) => e.preventDefault()}
                       />
                     ) : (
-                      <h3 className="text-2xl font-semibold text-[#666] mb-3">{block.content}</h3>
+                      <h3 className="text-2xl font-semibold text-gray-900 mb-3">{block.content}</h3>
                     )
                   )}
                   
@@ -895,12 +895,12 @@ export default function DetaljiNatjecanja() {
                       <textarea
                         value={block.content}
                         onChange={(e) => updateContentBlock(block.id, e.target.value)}
-                        className="w-full text-gray-700 border-2 border-dashed border-gray-300 rounded p-4 bg-transparent focus:outline-none focus:border-[#36b977] min-h-[100px] resize-vertical cursor-text"
+                        className="w-full text-gray-800 border-2 border-dashed border-gray-300 rounded p-4 bg-transparent focus:outline-none focus:border-[#36b977] min-h-[100px] resize-vertical cursor-text"
                         placeholder="Unesite tekst..."
                         onDragStart={(e) => e.preventDefault()}
                       />
                     ) : (
-                      <div className="text-gray-700 mb-4 whitespace-pre-wrap">{block.content}</div>
+                      <div className="text-gray-800 mb-4 whitespace-pre-wrap">{block.content}</div>
                     )
                   ) : null}
 
@@ -924,7 +924,7 @@ export default function DetaljiNatjecanja() {
                             />
                           </div>
                         </div>
-                        <div className="text-xs text-gray-500 mt-2">Unesite barem jedan kontakt.</div>
+                        <div className="text-xs text-gray-700 mt-2">Unesite barem jedan kontakt.</div>
                       </div>
                     ) : (
                       (() => {
@@ -1213,7 +1213,7 @@ export default function DetaljiNatjecanja() {
                     </button>
                   </div>
                 </div>
-                <div className="mt-3 text-sm text-gray-500 text-center">
+                <div className="mt-3 text-sm text-gray-700 text-center">
                   💡 Tip: Povucite blokove gore/dolje da promijenite redoslijed
                 </div>
               </div>
@@ -1222,7 +1222,7 @@ export default function DetaljiNatjecanja() {
             {/* Empty state for non-admin users when no content */}
             {!editMode && contentBlocks.length === 0 && (
               <div className="text-center py-12">
-                <div className="text-gray-500 text-lg">
+                <div className="text-gray-700 text-lg">
                   Dodatne informacije o natjecanju će biti dodane uskoro.
                 </div>
               </div>
@@ -1255,15 +1255,15 @@ export default function DetaljiNatjecanja() {
 
               {/* Visibility logic */}
               {(!natjecanje?.showApplications && !canEdit) ? (
-                <div className="p-4 text-sm text-gray-500">
+                <div className="p-4 text-sm text-gray-700">
                   Organizator je sakrio popis prijava.
                 </div>
               ) : (
                 <div className="p-4 flex-1 overflow-y-auto">
                   {loadingApplications ? (
-                    <div className="text-gray-500">Učitavanje prijava...</div>
+                    <div className="text-gray-700">Učitavanje prijava...</div>
                   ) : prijave.filter(p => p.status === 'approved').length === 0 ? (
-                    <div className="text-gray-500">Nema odobrenih prijava još.</div>
+                    <div className="text-gray-700">Nema odobrenih prijava još.</div>
                   ) : (
                     <ul className="space-y-3">
                       {prijave.filter(p => p.status === 'approved').map(p => (

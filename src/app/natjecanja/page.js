@@ -59,6 +59,19 @@ export default function Natjecanja() {
     return () => unsub();
   }, []);
 
+  // Lock body scroll on mobile while sidebar is open (must be before any early returns to keep hook order stable)
+  useEffect(() => {
+    const prevOverflow = typeof document !== 'undefined' ? document.body.style.overflow : '';
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = isSidebarOpen ? 'hidden' : prevOverflow || '';
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = prevOverflow || '';
+      }
+    };
+  }, [isSidebarOpen]);
+
   // Show loading while auth is being checked
   if (loading) {
     return (
@@ -325,14 +338,14 @@ export default function Natjecanja() {
       </header>
 
       {/* Mobilni naslov ispod headera */}
-      <div className="md:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-40">{/* removed extra pt-10 */}
+      <div className={`md:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-40 ${isSidebarOpen ? 'hidden' : ''}`}>
         <h1 className="text-2xl font-extrabold text-[#36b977] text-center tracking-wide">
           NATJECANJA
         </h1>
       </div>
 
       {/* Mobile filter dropdown */}
-      <div className="md:hidden fixed top-28 left-0 right-0 bg-white border-b border-gray-200 z-30">{/* removed extra pt-10 */}
+      <div className={`md:hidden fixed top-28 left-0 right-0 bg-white border-b border-gray-200 z-30 ${isSidebarOpen ? 'hidden' : ''}`}>
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
           className="w-full flex items-center justify-between px-4 py-3 text-left font-medium text-gray-700 hover:bg-gray-50"
@@ -410,7 +423,7 @@ export default function Natjecanja() {
       />
 
       {/* Desktop Right-side filter panel */}
-      <aside className="hidden lg:block fixed right-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-l border-gray-100 shadow-md overflow-auto z-20 rounded-l-xl pt-4 transition-all duration-300">
+      <aside className="hidden lg:block fixed right-0 top-16 h-[calc(100%-64px)] w-64 p-4 bg-white/90 backdrop-blur-sm border-l border-gray-100 shadow-md overflow-auto z-[60] rounded-l-xl pt-4 transition-all duration-300 pointer-events-auto">
         <div className="sticky top-4">
           <h3 className="text-lg font-bold text-[#36b977] mb-3">Filteri</h3>
         </div>
@@ -455,7 +468,7 @@ export default function Natjecanja() {
 
       {/* Main content area */}
       <div
-        className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:pl-80 lg:pr-64 flex items-center justify-center z-30`}
+        className={`w-full ${isFilterOpen ? 'pt-96' : 'pt-32'} md:pt-20 lg:pl-80 lg:pr-64 flex items-center justify-center z-[10]`}
         style={{ minHeight: 'calc(100vh - 6rem)', position: 'relative' }}
       >
         <div className="max-w-4xl w-full mx-auto flex flex-col items-center justify-center gap-6 py-8 px-4">
