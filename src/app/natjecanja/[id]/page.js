@@ -966,60 +966,63 @@ export default function DetaljiNatjecanja() {
                       editMode && canEdit ? (
                         <div className="bg-white border-2 border-dashed border-gray-300 rounded p-4">
                           {/* Controls */}
-                          <div className="flex items-center gap-2 mb-3 flex-wrap">
-                            <button
-                              onClick={() => {
-                                const headers = [...(block.content?.headers || [])];
-                                headers.push(`Stupac ${headers.length + 1}`);
-                                const columnTypes = [...(block.content?.columnTypes || [])];
-                                columnTypes.push('text');
-                                const normalized = normalizeTableContent({ headers, rows: block.content?.rows, columnTypes });
-                                updateContentBlock(block.id, { ...block.content, ...normalized });
-                              }}
-                              className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm"
-                            >
-                              + Stupac
-                            </button>
-                            {Array.isArray(block.content?.headers) && block.content.headers.length > 1 && (
+                          {/* make controls horizontally scrollable on mobile */}
+                          <div className="mb-3 -mx-4">
+                            <div className="flex items-center gap-2 px-4 overflow-x-auto">
                               <button
                                 onClick={() => {
-                                  const headers = [...block.content.headers];
-                                  headers.pop();
-                                  const columnTypes = [...(block.content?.columnTypes || [])].slice(0, headers.length);
-                                  const rows = (block.content.rows || []).map(r => r.slice(0, headers.length));
-                                  const normalized = normalizeTableContent({ headers, rows, columnTypes });
+                                  const headers = [...(block.content?.headers || [])];
+                                  headers.push(`Stupac ${headers.length + 1}`);
+                                  const columnTypes = [...(block.content?.columnTypes || [])];
+                                  columnTypes.push('text');
+                                  const normalized = normalizeTableContent({ headers, rows: block.content?.rows, columnTypes });
                                   updateContentBlock(block.id, { ...block.content, ...normalized });
                                 }}
-                                className="px-3 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 text-sm"
+                                className="shrink-0 px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm"
                               >
-                                − Stupac
+                                + Stupac
                               </button>
-                            )}
-                            <button
-                              onClick={() => {
-                                const rows = [...(block.content?.rows || [])];
-                                const cols = Math.max(1, block.content?.headers?.length || 1);
-                                rows.push(new Array(cols).fill(''));
-                                const normalized = normalizeTableContent({ headers: block.content?.headers, rows, columnTypes: block.content?.columnTypes });
-                                updateContentBlock(block.id, { ...block.content, ...normalized });
-                              }}
-                              className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm"
-                            >
-                              + Red
-                            </button>
-                            {Array.isArray(block.content?.rows) && block.content.rows.length > 0 && (
+                              {Array.isArray(block.content?.headers) && block.content.headers.length > 1 && (
+                                <button
+                                  onClick={() => {
+                                    const headers = [...block.content.headers];
+                                    headers.pop();
+                                    const columnTypes = [...(block.content?.columnTypes || [])].slice(0, headers.length);
+                                    const rows = (block.content.rows || []).map(r => r.slice(0, headers.length));
+                                    const normalized = normalizeTableContent({ headers, rows, columnTypes });
+                                    updateContentBlock(block.id, { ...block.content, ...normalized });
+                                  }}
+                                  className="shrink-0 px-3 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 text-sm"
+                                >
+                                  − Stupac
+                                </button>
+                              )}
                               <button
                                 onClick={() => {
-                                  const rows = [...block.content.rows];
-                                  rows.pop();
+                                  const rows = [...(block.content?.rows || [])];
+                                  const cols = Math.max(1, block.content?.headers?.length || 1);
+                                  rows.push(new Array(cols).fill(''));
                                   const normalized = normalizeTableContent({ headers: block.content?.headers, rows, columnTypes: block.content?.columnTypes });
                                   updateContentBlock(block.id, { ...block.content, ...normalized });
                                 }}
-                                className="px-3 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 text-sm"
+                                className="shrink-0 px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm"
                               >
-                                − Red
+                                + Red
                               </button>
-                            )}
+                              {Array.isArray(block.content?.rows) && block.content.rows.length > 0 && (
+                                <button
+                                  onClick={() => {
+                                    const rows = [...block.content.rows];
+                                    rows.pop();
+                                    const normalized = normalizeTableContent({ headers: block.content?.headers, rows, columnTypes: block.content?.columnTypes });
+                                    updateContentBlock(block.id, { ...block.content, ...normalized });
+                                  }}
+                                  className="shrink-0 px-3 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 text-sm"
+                                >
+                                  − Red
+                                </button>
+                              )}
+                            </div>
                           </div>
 
                           {/* Table editor */}
@@ -1166,10 +1169,11 @@ export default function DetaljiNatjecanja() {
                 <div className="mt-8 p-4 border-2 border-dashed border-gray-300 rounded-lg">
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <span className="text-gray-600 font-medium">Dodaj novi sadržaj:</span>
-                    <div className="flex gap-2">
+                    {/* wrap buttons and allow full-width on mobile to prevent overflow */}
+                    <div className="flex flex-wrap justify-center gap-2 w-full">
                       <button
                         onClick={() => addContentBlock('title')}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200 flex items-center gap-2"
+                        className="w-full sm:w-auto bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200 flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -1178,7 +1182,7 @@ export default function DetaljiNatjecanja() {
                       </button>
                       <button
                         onClick={() => addContentBlock('subtitle')}
-                        className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200 flex items-center gap-2"
+                        className="w-full sm:w-auto bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors duration-200 flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -1187,7 +1191,7 @@ export default function DetaljiNatjecanja() {
                       </button>
                       <button
                         onClick={() => addContentBlock('text')}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200 flex items-center gap-2"
+                        className="w-full sm:w-auto bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200 flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -1196,7 +1200,7 @@ export default function DetaljiNatjecanja() {
                       </button>
                       <button
                         onClick={() => addContentBlock('kontakt')}
-                        className="bg-rose-500 text-white px-4 py-2 rounded hover:bg-rose-600 transition-colors duration-200 flex items-center gap-2"
+                        className="w-full sm:w-auto bg-rose-500 text-white px-4 py-2 rounded hover:bg-rose-600 transition-colors duration-200 flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -1205,7 +1209,7 @@ export default function DetaljiNatjecanja() {
                       </button>
                       <button
                         onClick={() => addContentBlock('table')}
-                        className="bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600 transition-colors duration-200 flex items-center gap-2"
+                        className="w-full sm:w-auto bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600 transition-colors duration-200 flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18M3 14h18M3 18h18" />
