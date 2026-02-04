@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "../../firebase/config";
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, deleteField } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
 import Sidebar from "../components/Sidebar";
 import Swal from 'sweetalert2';
@@ -166,6 +166,50 @@ export default function Natjecanja() {
           'error'
         );
       }
+    }
+  };
+
+  // Admin-only: merged dialog to set or remove image URL
+  const handleSetImageUrl = async (natjecanje) => {
+    if (!isAdmin) return;
+    const result = await Swal.fire({
+      title: 'Uredi sliku',
+      input: 'url',
+      inputLabel: 'URL slike (https://...)', 
+      inputPlaceholder: natjecanje.slika || 'https://example.com/image.jpg',
+      inputValue: natjecanje.slika || '',
+      showCancelButton: true,
+      showDenyButton: !!natjecanje.slika,
+      confirmButtonText: 'Spremi',
+      denyButtonText: 'Ukloni sliku',
+      cancelButtonText: 'Odustani',
+      preConfirm: (value) => {
+        if (!value) {
+          Swal.showValidationMessage('URL je obavezan');
+          return false;
+        }
+        try { new URL(value); } catch {
+          Swal.showValidationMessage('Neispravan URL');
+          return false;
+        }
+        return value;
+      }
+    });
+
+    try {
+      if (result.isDenied) {
+        await updateDoc(doc(db, 'natjecanja', natjecanje.id), { slika: deleteField() });
+        await Swal.fire('Uklonjeno', 'Slika je uklonjena.', 'success');
+        return;
+      }
+      if (result.isConfirmed) {
+        const url = result.value;
+        await updateDoc(doc(db, 'natjecanja', natjecanje.id), { slika: url });
+        await Swal.fire('Spremljeno', 'Slika je dodana/izmijenjena.', 'success');
+      }
+    } catch (error) {
+      console.error('Error updating/removing image URL:', error);
+      await Swal.fire('Greška', 'Nije moguće spremiti promjenu.', 'error');
     }
   };
 
@@ -570,7 +614,7 @@ export default function Natjecanja() {
                     </button>
                   )}
                   
-                  {/* Admin controls: absolute on md+, stacked on mobile */}
+                  {/* Admin controls: single button opens dialog to set/remove image */}
                   {isAdmin && (
                     <div className="md:absolute md:bottom-4 md:left-4 w-full md:w-auto mt-3 md:mt-0 flex flex-col md:flex-row gap-2">
                       <button
@@ -586,6 +630,22 @@ export default function Natjecanja() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                         Obriši
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleSetImageUrl(natjecanje);
+                        }}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center md:justify-start gap-2 shadow-lg z-10"
+                        title="Dodaj/uredi URL slike"
+                        type="button"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Dodaj URL slike
                       </button>
                     </div>
                   )}

@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { db } from "../../../firebase/config";
-import { doc, getDoc, updateDoc, serverTimestamp, collection, query, where, onSnapshot } from "firebase/firestore";
+import { doc, updateDoc, deleteField, getDoc, query, collection, where, onSnapshot } from "firebase/firestore";
 import { useAuth } from "../../../contexts/AuthContext";
+import Swal from "sweetalert2";
 import Sidebar from "../../components/Sidebar";
-import Swal from 'sweetalert2';
 
 // Helper: serialize contentBlocks for Firestore (avoid nested arrays)
 const serializeContentBlocks = (blocks) => {
@@ -472,6 +472,48 @@ export default function DetaljiNatjecanja() {
     }
   };
 
+  const handleSetImageUrl = async (natjecanje) => {
+    if (!isAdmin) return;
+    const result = await Swal.fire({
+      title: 'Uredi sliku',
+      input: 'url',
+      inputLabel: 'URL slike (https://...)',
+      inputPlaceholder: natjecanje.slika || 'https://example.com/image.jpg',
+      inputValue: natjecanje.slika || '',
+      showCancelButton: true,
+      showDenyButton: !!natjecanje.slika,
+      confirmButtonText: 'Spremi',
+      denyButtonText: 'Ukloni sliku',
+      cancelButtonText: 'Odustani',
+      preConfirm: (value) => {
+        if (!value) {
+          Swal.showValidationMessage('URL je obavezan');
+          return false;
+        }
+        try { new URL(value); } catch {
+          Swal.showValidationMessage('Neispravan URL');
+          return false;
+        }
+        return value;
+      }
+    });
+
+    try {
+      if (result.isDenied) {
+        await updateDoc(doc(db, 'natjecanja', natjecanje.id), { slika: deleteField() });
+        await Swal.fire('Uklonjeno', 'Slika je uklonjena.', 'success');
+        return;
+      }
+      if (result.isConfirmed) {
+        await updateDoc(doc(db, 'natjecanja', natjecanje.id), { slika: result.value });
+        await Swal.fire('Spremljeno', 'Slika je dodana/izmijenjena.', 'success');
+      }
+    } catch (error) {
+      console.error('Error updating/removing image URL:', error);
+      await Swal.fire('Greška', 'Nije moguće spremiti promjenu.', 'error');
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -544,6 +586,24 @@ export default function DetaljiNatjecanja() {
           </div>
         </div>
       </header>
+
+      {/* Banner/image section */}
+      {natjecanje?.slika ? (
+        <img
+          src={natjecanje.slika}
+          alt={natjecanje.naziv}
+          className="w-full h-64 md:h-80 object-cover rounded border border-gray-200"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <div
+          className="w-full h-64 md:h-80 rounded border border-gray-200"
+          style={{ 
+            background: natjecanje?.gradientStyle || getCategoryGradient(natjecanje.kategorija),
+          }}
+        />
+      )}
 
       {/* Main content with right applications list */}
       <div className="overflow-x-hidden">{/* keep horizontal scroll prevention below header */}
