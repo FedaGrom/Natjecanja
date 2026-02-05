@@ -239,33 +239,33 @@ export default function Natjecanja() {
       <div aria-hidden="true" className="pointer-events-none">
         {/* Top-right pozadina (iza sadržaja), poravnata uz desni sidebar */}
         <div
-          className="hidden md:block absolute top-16 right-0 lg:right-64 z-10 opacity-70"
+          className="hidden md:block absolute top-16 right-0 xl:right-64 z-10 opacity-70"
           style={{
-            width: '500px',
-            height: '500px',
-            backgroundImage: 'url(/slike/top.png)',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: 'contain',
-            backgroundPosition: 'top right'
+            width: "500px",
+            height: "500px",
+            backgroundImage: "url(/slike/top.png)",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "contain",
+            backgroundPosition: "top right",
           }}
         />
         {/* Bottom-left pozadina (fiksirano za dno), poravnata uz lijevi sidebar */}
         <div
-          className="fixed bottom-0 left-0 lg:left-80 z-10 opacity-70"
+          className="fixed bottom-0 left-0 xl:left-80 z-10 opacity-70"
           style={{
-            width: '500px',
-            height: '500px',
-            backgroundImage: 'url(/slike/bottom.png)',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: 'contain',
-            backgroundPosition: 'bottom left'
+            width: "500px",
+            height: "500px",
+            backgroundImage: "url(/slike/bottom.png)",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "contain",
+            backgroundPosition: "bottom left",
           }}
         />
       </div>
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 w-full bg-[#666] shadow-md border-b border-gray-200 z-50">
-        <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center justify-between px-4 py-2 md:grid md:grid-cols-[1fr,auto,1fr] md:items-center md:gap-4">
           {/* Lijevo - Škola info i logo */}
           <div className="flex items-center gap-3">
             <img
@@ -286,14 +286,14 @@ export default function Natjecanja() {
           </div>
 
           {/* Sredina - Naslov DOGAĐANJA (samo na desktop) */}
-          <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
+          <h1 className="hidden md:block text-center md:text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] md:justify-self-center">
             ŠKOLSKA DOGAĐANJA
           </h1>
 
           {/* Desno - Botuni/Menu */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 md:justify-self-end">
             {/* Desktop verzija */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden xl:flex items-center gap-4">
               {user ? (
                 <>
                   <div className="flex items-center gap-2">
@@ -331,16 +331,23 @@ export default function Natjecanja() {
               )}
             </div>
 
-            {/* Mobile verzija - korisnički izbornik u headeru */}
-            <div className="md:hidden relative flex items-center gap-2">
-              {/* Postojeći burger (ako postoji) neka stoji desno od user ikone kroz gap-2 */}
+            {/* Mobile / medium verzija - korisnički izbornik u headeru */}
+            <div className="flex xl:hidden relative items-center gap-2">
               <button
-                onClick={(e) => { e.stopPropagation(); setIsUserMenuOpen(v => !v); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsUserMenuOpen((v) => !v);
+                }}
                 className="bg-white text-[#666] p-2 rounded-lg shadow-lg hover:bg-gray-100 transition-colors duration-200"
                 aria-label="Korisnički izbornik"
               >
                 {/* User silhouette icon */}
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  className="w-6 h-6"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zM4 20a8 8 0 0116 0v1H4v-1z" />
                 </svg>
               </button>
@@ -382,14 +389,26 @@ export default function Natjecanja() {
       </header>
 
       {/* Mobilni naslov ispod headera */}
-      <div className={`md:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-40 ${isSidebarOpen ? 'hidden' : ''}`}>
-        <h1 className="text-2xl font-extrabold text-[#36b977] text-center tracking-wide">
-          DOGAĐANJA
-        </h1>
+      <div
+        className={`md:hidden fixed top-16 left-0 right-0 bg-white/95 border-b border-gray-200 z-40 ${
+          isSidebarOpen ? "hidden" : ""
+        }`}
+      >
+        <div className="px-4 pt-2 pb-3">
+          <h1
+            className="text-xl font-extrabold text-[#36b977] text-center tracking-wide px-10 py-1 rounded-full border border-[#36b977]/40 shadow-sm bg-white"
+          >
+            ŠKOLSKA DOGAĐANJA
+          </h1>
+        </div>
       </div>
 
-      {/* Mobile filter dropdown */}
-      <div className={`md:hidden fixed top-28 left-0 right-0 bg-white border-b border-gray-200 z-30 ${isSidebarOpen ? 'hidden' : ''}`}>
+      {/* Mobile / medium filter dropdown */}
+      <div
+        className={`lg:hidden fixed top-28 left-0 right-0 bg-white border-b border-gray-200 z-30 ${
+          isSidebarOpen ? "hidden" : ""
+        }`}
+      >
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
           className="w-full flex items-center justify-between px-4 py-3 text-left font-medium text-gray-700 hover:bg-gray-50"
@@ -460,9 +479,9 @@ export default function Natjecanja() {
         )}
       </div>
 
-      {/* Sidebar */}
-      <Sidebar 
-        isOpen={isSidebarOpen} 
+      {/* Sidebar (lijevi) */}
+      <Sidebar
+        isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 

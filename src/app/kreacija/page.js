@@ -305,7 +305,7 @@ export default function KreacijaNatjecanja() {
                 onChange={(e) => setVrstaNatjecanja(e.target.value)}
                 className="text-[#36b977] focus:ring-[#36b977]"
               />
-              <span>Pojedinačno</span>
+              <span className="text-[#666]">Pojedinačno</span>
             </label>
             <label className="flex items-center space-x-2">
               <input
@@ -316,7 +316,7 @@ export default function KreacijaNatjecanja() {
                 onChange={(e) => setVrstaNatjecanja(e.target.value)}
                 className="text-[#36b977] focus:ring-[#36b977]"
               />
-              <span>Timsko (grupno)</span>
+              <span className="text-[#666]">Timsko (grupno)</span>
             </label>
           </div>
 
@@ -359,7 +359,7 @@ export default function KreacijaNatjecanja() {
                 onChange={(e) => setTipPrijave(e.target.value)}
                 className="text-[#36b977] focus:ring-[#36b977]"
               />
-              <span>Prijave na ovoj web stranici</span>
+              <span className="text-[#666]">Prijave na ovoj web stranici</span>
             </label>
             <label className="flex items-center space-x-2">
               <input
@@ -370,7 +370,7 @@ export default function KreacijaNatjecanja() {
                 onChange={(e) => setTipPrijave(e.target.value)}
                 className="text-[#36b977] focus:ring-[#36b977]"
               />
-              <span>Custom link za prijavu</span>
+              <span className="text-[#666]">Custom link za prijavu</span>
             </label>
           </div>
 
@@ -393,7 +393,7 @@ export default function KreacijaNatjecanja() {
             disabled={loading || (kategorija === 'OSTALO' && !customKategorija.trim()) || (tipPrijave === 'custom' && !customPrijavaLink.trim())}
             className="bg-[#36b977] disabled:opacity-50 text-white font-bold px-4 py-2 rounded hover:bg-[#24995a] transition-colors duration-200"
           >
-            {loading ? 'Spremanje...' : 'Spremi'}
+            {loading ? 'Spremanje...' : 'Spremi kao draft'}
           </button>
         </form>
       </div>
