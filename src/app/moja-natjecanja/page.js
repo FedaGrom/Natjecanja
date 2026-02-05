@@ -89,7 +89,7 @@ export default function MojaNatjecanja() {
   const handleDelete = async (natjecanje) => {
     const result = await Swal.fire({
       title: 'Jeste li sigurni?',
-      text: `Želite obrisati natjecanje "${natjecanje.naziv}"?`,
+      text: `Želite obrisati događanje "${natjecanje.naziv}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -103,14 +103,14 @@ export default function MojaNatjecanja() {
         await deleteDoc(doc(db, 'natjecanja', natjecanje.id));
         await Swal.fire(
           'Obrisano!',
-          'Natjecanje je uspješno obrisano.',
+          'Događanje je uspješno obrisano.',
           'success'
         );
       } catch (error) {
         console.error('Error deleting competition:', error);
         await Swal.fire(
           'Greška!',
-          'Dogodila se greška prilikom brisanja natjecanja.',
+          'Dogodila se greška prilikom brisanja događanja.',
           'error'
         );
       }
@@ -121,9 +121,9 @@ export default function MojaNatjecanja() {
     const result = await Swal.fire({
       title: 'Pošalji na odobravanje?',
       html: `
-        <p>Želite poslati natjecanje na odobravanje:</p>
+        <p>Želite poslati događanje na odobravanje:</p>
         <p><strong>${natjecanje.naziv}</strong></p>
-        <p class="text-blue-600">Administrator će pregledati vaš zahtjev i odobriti natjecanje za objavu.</p>
+        <p class="text-blue-600">Administrator će pregledati vaš zahtjev i odobriti događanje za objavu.</p>
       `,
       icon: 'question',
       showCancelButton: true,
@@ -145,7 +145,7 @@ export default function MojaNatjecanja() {
           icon: 'success',
           title: 'Poslano na odobravanje!',
           html: `
-            <p>Natjecanje je uspješno poslano administratoru na odobravanje.</p>
+            <p>Događanje je uspješno poslano administratoru na odobravanje.</p>
             <p><strong>${natjecanje.naziv}</strong> čeka pregled administratora.</p>
           `,
           timer: 3000,
@@ -158,7 +158,7 @@ export default function MojaNatjecanja() {
         await Swal.fire({
           icon: 'error',
           title: 'Greška',
-          text: 'Dogodila se greška prilikom slanja natjecanja na odobravanje.'
+          text: 'Dogodila se greška prilikom slanja događanja na odobravanje.'
         });
       }
     }
@@ -264,12 +264,12 @@ export default function MojaNatjecanja() {
           </div>
           
           <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-            MOJA NATJECANJA
+            MOJA DOGAĐANJA
           </h1>
           
           <Link href="/kreacija">
             <button className="bg-[#36b977] text-white font-bold px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200">
-              + Novo natjecanje
+              + Novo događanje
             </button>
           </Link>
         </div>
@@ -277,7 +277,7 @@ export default function MojaNatjecanja() {
 
       {/* Mobile title below header */}
       <div className="md:hidden px-4 py-3 bg-white border-b border-gray-200">
-        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">MOJA NATJECANJA</h1>
+        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">MOJA DOGAĐANJA</h1>
       </div>
 
       {/* Main content */}
@@ -286,7 +286,7 @@ export default function MojaNatjecanja() {
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex flex-wrap gap-2">
             {[
-              { key: 'all', label: 'Sva natjecanja' },
+              { key: 'all', label: 'Sva događanja' },
               { key: 'pending', label: 'Čeka odobravanje' },
               { key: 'published', label: 'Objavljena' },
               { key: 'rejected', label: 'Odbačena' },
@@ -326,7 +326,7 @@ export default function MojaNatjecanja() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="text-2xl font-bold text-[#36b977]">{natjecanja.length}</div>
-            <div className="text-sm text-gray-600">Ukupno natjecanja</div>
+            <div className="text-sm text-gray-600">Ukupno događanja</div>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="text-2xl font-bold text-green-600">{natjecanja.filter(n => n.status === 'published').length}</div>
@@ -347,13 +347,13 @@ export default function MojaNatjecanja() {
                   <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  <p className="text-lg">Nemate kreirana natjecanja</p>
-                  <p className="text-sm">Kliknite "Novo natjecanje" da kreirate svoje prvo natjecanje</p>
+                  <p className="text-lg">Nemate kreirana događanja</p>
+                  <p className="text-sm">Kliknite "Novo događanje" da kreirate svoje prvo događanje</p>
                 </>
               ) : (
                 <>
                   <p className="text-lg">
-                    Nema {filter === 'published' ? 'objavljenih' : 'draft'} natjecanja
+                    Nema {filter === 'published' ? 'objavljenih' : 'draft'} događanja
                   </p>
                 </>
               )}
@@ -361,7 +361,7 @@ export default function MojaNatjecanja() {
             {filter === 'all' && (
               <Link href="/kreacija">
                 <button className="bg-[#36b977] text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-200">
-                  Kreiraj prvo natjecanje
+                  Kreiraj prvo događanje
                 </button>
               </Link>
             )}
@@ -438,7 +438,7 @@ export default function MojaNatjecanja() {
                       </button>
                     </Link>
 
-                    {/* Gumb za slanje na odobravanje - samo za draft natjecanja */}
+                    {/* Gumb za slanje na odobravanje - samo za draft događanja */}
                     {natjecanje.status === 'draft' && (
                       <button
                         onClick={() => handlePublish(natjecanje)}
@@ -451,7 +451,7 @@ export default function MojaNatjecanja() {
                       </button>
                     )}
 
-                    {/* Gumb za upravljanje prijavama - samo za objavljena natjecanja */}
+                    {/* Gumb za upravljanje prijavama - samo za objavljena događanja */}
                     {natjecanje.status === 'published' && (
                       <Link href={`/moja-natjecanja/${natjecanje.id}/prijave`}>
                         <button className="bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2">
@@ -471,7 +471,7 @@ export default function MojaNatjecanja() {
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(natjecanje); }}
                   className="absolute bottom-4 right-4 bg-red-500 text-white p-3 rounded-full hover:bg-red-600 shadow-lg transition-colors duration-200"
-                  title="Obriši natjecanje"
+                  title="Obriši događanje"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

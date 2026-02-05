@@ -106,8 +106,8 @@ export default function PrijavaNatjecanje() {
         icon: 'info',
         title: 'Prijave su zatvorene',
         text: natjecanje?.phase === 'aktivan' 
-          ? 'Natjecanje je u tijeku, prijave više nisu moguće.'
-          : 'Natjecanje je završilo, prijave nisu moguće.'
+          ? 'Događanje je u tijeku, prijave više nisu moguće.'
+          : 'Događanje je završilo, prijave nisu moguće.'
       });
       setSubmitting(false);
       return;
@@ -174,8 +174,8 @@ export default function PrijavaNatjecanje() {
         icon: 'success',
         title: 'Prijava poslana!',
         html: teamMode
-          ? `<p>Prijava ekipe <strong>"${formData.nazivGrupe}"</strong> na natjecanje <strong>"${natjecanje.naziv}"</strong> je uspješno poslana.</p>`
-          : `<p>Vaša prijava na natjecanje <strong>"${natjecanje.naziv}"</strong> je uspješno poslana.</p>`,
+          ? `<p>Prijava ekipe <strong>"${formData.nazivGrupe}"</strong> na događanje <strong>"${natjecanje.naziv}"</strong> je uspješno poslana.</p>`
+          : `<p>Vaša prijava na događanje <strong>"${natjecanje.naziv}"</strong> je uspješno poslana.</p>`,
         confirmButtonText: 'U redu'
       });
 
@@ -215,7 +215,7 @@ export default function PrijavaNatjecanje() {
   if (!natjecanje) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-500">Natjecanje nije pronađeno</div>
+        <div className="text-xl text-red-500">Događanje nije pronađeno</div>
       </div>
     );
   }
@@ -250,9 +250,9 @@ export default function PrijavaNatjecanje() {
             </div>
           </div>
 
-          {/* Sredina - Naslov PRIJAVA NA NATJECANJE */}
+          {/* Sredina - Naslov PRIJAVA NA DOGAĐANJE */}
           <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl lg:text-2xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-            PRIJAVA NA NATJECANJE
+            PRIJAVA NA DOGAĐANJE
           </h1>
 
           {/* Desno - Navigation buttons */}
@@ -277,7 +277,7 @@ export default function PrijavaNatjecanje() {
 
       {/* Mobile title below header */}
       <div className="md:hidden px-4 py-3 bg-white border-b border-gray-200">
-        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">PRIJAVA NA NATJECANJE</h1>
+        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">PRIJAVA NA DOGAĐANJE</h1>
       </div>
 
       {/* Main Content */}
@@ -306,8 +306,8 @@ export default function PrijavaNatjecanje() {
             <h2 className="text-2xl font-bold text-yellow-800 mb-2">Prijave su zatvorene</h2>
             <p className="text-yellow-700 mb-4">
               {natjecanje.phase === 'aktivan' 
-                ? 'Natjecanje je u tijeku, prijave više nisu moguće.'
-                : 'Natjecanje je završilo, prijave nisu moguće.'}
+                ? 'Događanje je u tijeku, prijave više nisu moguće.'
+                : 'Događanje je završilo, prijave nisu moguće.'}
             </p>
             <Link href={`/natjecanja/${id}`}>
               <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
@@ -320,7 +320,7 @@ export default function PrijavaNatjecanje() {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Podaci za prijavu</h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Ako je timsko natjecanje, prikaži kontrole za tim */}
+              {/* Ako je timsko događanje, prikaži kontrole za tim */}
               {teamMode ? (
                 <div className="space-y-4">
                   <div>
@@ -510,8 +510,8 @@ export default function PrijavaNatjecanje() {
                   <div>
                     <h3 className="text-lg font-semibold text-blue-800 mb-2">Napomena</h3>
                     <p className="text-blue-700">
-                      Vaša prijava će biti pregledana od strane organizatora natjecanja. 
-                      Za dodatne informacije o statusu prijave, obratite se organizatoru natjecanja ili profesoru informatike.
+                      Vaša prijava će biti pregledana od strane organizatora događanja. 
+                      Za dodatne informacije o statusu prijave, obratite se organizatoru događanja ili profesoru informatike.
                     </p>
                   </div>
                 </div>

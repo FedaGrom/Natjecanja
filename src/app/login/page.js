@@ -167,7 +167,7 @@ export default function Login() {
               Nemate račun?
             </p>
             <p className="text-base text-blue-600 mb-3">
-              Pošaljite zahtjev administratoru za registraciju na platformu natjecanja. Administrator će pregledati vaš zahtjev u administratorskom panelu.
+              Pošaljite zahtjev administratoru za registraciju na platformu školskih događanja. Administrator će pregledati vaš zahtjev u administratorskom panelu.
             </p>
             <Link href="/registracija">
               <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">

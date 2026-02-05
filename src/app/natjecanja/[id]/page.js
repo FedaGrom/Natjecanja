@@ -354,10 +354,10 @@ export default function DetaljiNatjecanja() {
         startedBy: user?.email || user?.uid || 'unknown'
       });
       setNatjecanje(prev => ({ ...prev, phase: 'aktivan', startedAt: new Date() }));
-      await Swal.fire({ icon: 'success', title: 'Natjecanje je pokrenuto', timer: 1500, showConfirmButton: false });
+      await Swal.fire({ icon: 'success', title: 'Događanje je pokrenuto', timer: 1500, showConfirmButton: false });
     } catch (e) {
       console.error('Error starting competition:', e);
-      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće pokrenuti natjecanje.' });
+      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće pokrenuti događanje.' });
     }
   };
 
@@ -365,7 +365,7 @@ export default function DetaljiNatjecanja() {
     if (!canEdit || currentPhase !== 'aktivan') return;
     const confirm = await Swal.fire({
       icon: 'warning',
-      title: 'Završi natjecanje?',
+      title: 'Završi događanje?',
       text: 'Status će se promijeniti u "Završio" i zabilježit će se datum završetka.',
       showCancelButton: true,
       confirmButtonText: 'Završi',
@@ -380,10 +380,10 @@ export default function DetaljiNatjecanja() {
         endedBy: user?.email || user?.uid || 'unknown'
       });
       setNatjecanje(prev => ({ ...prev, phase: 'zavrsio', endedAt: new Date() }));
-      await Swal.fire({ icon: 'success', title: 'Natjecanje je završeno', timer: 1500, showConfirmButton: false });
+      await Swal.fire({ icon: 'success', title: 'Događanje je završeno', timer: 1500, showConfirmButton: false });
     } catch (e) {
       console.error('Error ending competition:', e);
-      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće završiti natjecanje.' });
+      await Swal.fire({ icon: 'error', title: 'Greška', text: 'Nije moguće završiti događanje.' });
     }
   };
 
@@ -410,11 +410,11 @@ export default function DetaljiNatjecanja() {
     if (!canEdit) return;
     // Basic validation
     if (!form.naziv.trim()) {
-      await Swal.fire({ icon: 'warning', title: 'Nedostaje naziv', text: 'Unesite naziv natjecanja.' });
+      await Swal.fire({ icon: 'warning', title: 'Nedostaje naziv', text: 'Unesite naziv događanja.' });
       return;
     }
     if (!form.datum.trim()) {
-      await Swal.fire({ icon: 'warning', title: 'Nedostaje datum', text: 'Unesite datum natjecanja.' });
+      await Swal.fire({ icon: 'warning', title: 'Nedostaje datum', text: 'Unesite datum događanja.' });
       return;
     }
     if (form.tipPrijave === 'custom' && !form.prijavaLink.trim()) {
@@ -614,7 +614,7 @@ export default function DetaljiNatjecanja() {
   if (!natjecanje) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-500">Natjecanje nije pronađeno</div>
+        <div className="text-xl text-red-500">Događanje nije pronađeno</div>
       </div>
     );
   }
@@ -666,7 +666,7 @@ export default function DetaljiNatjecanja() {
                 {/* Removed start button from header */}
                 {currentPhase === 'aktivan' && (
                   <button onClick={endCompetition} className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition-colors duration-200">
-                    Završi natjecanje
+                    Završi događanje
                   </button>
                 )}
               </>
@@ -795,12 +795,12 @@ export default function DetaljiNatjecanja() {
                       <button
                         onClick={startCompetition}
                         className="absolute bottom-3 right-3 bg-white text-black px-4 py-2 rounded-full hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 shadow-md"
-                        title="Pokreni natjecanje"
+                        title="Pokreni događanje"
                       >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                           <path d="M6 4l10 6-10 6V4z" />
                         </svg>
-                        Započni natjecanje
+                        Započni događanje
                       </button>
                     )}
                   </div>
@@ -839,7 +839,7 @@ export default function DetaljiNatjecanja() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               )}
                             </svg>
-                            Prijavi se na natjecanje
+                            Prijavi se na događanje
                           </button>
                         ) : (
                           <button
@@ -854,7 +854,7 @@ export default function DetaljiNatjecanja() {
                         {/* Removed start button from basic info section */}
                         {canEdit && currentPhase === 'aktivan' && (
                           <button onClick={endCompetition} className="bg-red-500 text-white px-4 py-3 rounded hover:bg-red-600 transition-colors duration-200">
-                            Završi natjecanje
+                            Završi događanje
                           </button>
                         )}
                       </div>
@@ -1393,7 +1393,7 @@ export default function DetaljiNatjecanja() {
                 {/* Empty state for non-admin users when no content */}
                 {!editMode && contentBlocks.length === 0 && (
                   <div className="text-center py-12">
-                    Dodatne informacije o natjecanju će biti dodane uskoro.
+                    Dodatne informacije o događanju će biti dodane uskoro.
                   </div>
                 )}
               </div>

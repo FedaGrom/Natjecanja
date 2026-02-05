@@ -5,8 +5,8 @@ import { AuthProvider } from "../contexts/AuthContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Natjecanja - III. gimnazija Split",
-  description: "Portal za natjecanja III. gimnazije Split",
+  title: "Školska događanja - III. gimnazija Split",
+  description: "Portal za školska događanja III. gimnazije Split",
   icons: {
     icon: "/slike/logo.jpg.png",
     // optional: set shortcut and apple icons if desired

@@ -35,7 +35,7 @@ export default function UpravljajPrijavama() {
             await Swal.fire({
               icon: 'error',
               title: 'Nemate dozvolu',
-              text: 'Možete upravljati samo prijavama za natjecanja koja ste vi kreirali.',
+              text: 'Možete upravljati samo prijavama za događanja koja ste vi kreirali.',
               confirmButtonText: 'U redu'
             });
             router.push('/moja-natjecanja');
@@ -47,7 +47,7 @@ export default function UpravljajPrijavama() {
           return;
         }
       } catch (error) {
-        console.error('Error loading natjecanje:', error);
+        console.error('Error loading događanje:', error);
         router.push('/moja-natjecanja');
         return;
       } finally {
@@ -60,7 +60,7 @@ export default function UpravljajPrijavama() {
     }
   }, [id, user, authLoading, router]);
 
-  // Load applications for this competition
+  // Load applications for this event
   useEffect(() => {
     if (!id || !user) return;
 
@@ -125,7 +125,7 @@ export default function UpravljajPrijavama() {
         <p>Odobravate prijavu za:</p>
         <p><strong>${prijava.ime} ${prijava.prezime}</strong></p>
         <p><strong>Email:</strong> ${prijava.email}</p>
-        <p><strong>Natjecanje:</strong> ${prijava.natjecanjeNaziv}</p>
+        <p><strong>Događanje:</strong> ${prijava.natjecanjeNaziv}</p>
       `,
       icon: 'question',
       showCancelButton: true,
@@ -148,7 +148,7 @@ export default function UpravljajPrijavama() {
           title: 'Prijava odobrena!',
           html: `
             <p>Prijava je uspješno odobrena.</p>
-            <p><small><strong>Važno:</strong> Obavijestite korisnika putem email-a o odobrenju prijave na natjecanje.</small></p>
+            <p><small><strong>Važno:</strong> Obavijestite korisnika putem email-a o odobrenju prijave na događanje.</small></p>
           `,
           confirmButtonText: 'U redu'
         });
@@ -291,7 +291,7 @@ export default function UpravljajPrijavama() {
   if (!natjecanje) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-500">Natjecanje nije pronađeno</div>
+        <div className="text-xl text-red-500">Događanje nije pronađeno</div>
       </div>
     );
   }
@@ -311,7 +311,7 @@ export default function UpravljajPrijavama() {
             />
             <Link href="/moja-natjecanja">
               <button className="bg-white text-[#666] font-bold px-4 py-2 rounded hover:bg-[#36b977] hover:text-white transition-colors duration-200">
-                ← Moja natjecanja
+                ← Moja događanja
               </button>
             </Link>
             <div className="flex flex-col">
@@ -325,7 +325,7 @@ export default function UpravljajPrijavama() {
           </div>
           
           <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl lg:text-2xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-            PRIJAVE NA NATJECANJE
+            PRIJAVE NA DOGAĐANJE
           </h1>
           
           <Link href="/natjecanja">
@@ -341,14 +341,14 @@ export default function UpravljajPrijavama() {
 
       {/* Mobile title below header */}
       <div className="md:hidden px-4 py-3 bg-white border-b border-gray-200">
-        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">PRIJAVE NA NATJECANJE</h1>
+        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">PRIJAVE NA DOGAĐANJE</h1>
       </div>
 
       {/* Main content */}
       <div className="max-w-6xl mx-auto p-6">
         {/* Competition info */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border-2 border-[#36b977]">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Natjecanje: {natjecanje.naziv}</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Događanje: {natjecanje.naziv}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
             <div>
               <p><strong>Datum:</strong> {natjecanje.datum}</p>
@@ -378,7 +378,7 @@ export default function UpravljajPrijavama() {
             <div>
               <h3 className="text-lg font-semibold text-blue-800 mb-2">Važna napomena</h3>
               <p className="text-blue-700">
-                Kao kreator ovog natjecanja, možete upravljati prijavama korisnika. 
+                Kao kreator ovog događanja, možete upravljati prijavama korisnika. 
                 <strong> Obavezno ručno obavijestite korisnike putem email-a</strong> o statusu njihove prijave.
               </p>
             </div>
@@ -421,7 +421,7 @@ export default function UpravljajPrijavama() {
             </div>
             {prijave.length === 0 && (
               <p className="text-gray-400 text-sm mt-2">
-                Kada se korisnici prijave na vaše natjecanje, njihove prijave će se pojaviti ovdje.
+                Kada se korisnici prijave na vaše događanje, njihove prijave će se pojaviti ovdje.
               </p>
             )}
           </div>

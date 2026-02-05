@@ -45,7 +45,7 @@ export default function AdminPrijave() {
         <p>Odobravate prijavu za:</p>
         <p><strong>${prijava.ime} ${prijava.prezime}</strong></p>
         <p><strong>Email:</strong> ${prijava.email}</p>
-        <p><strong>Natjecanje:</strong> ${prijava.natjecanjeNaziv}</p>
+        <p><strong>Događanje:</strong> ${prijava.natjecanjeNaziv}</p>
       `,
       icon: 'question',
       showCancelButton: true,
@@ -69,7 +69,7 @@ export default function AdminPrijave() {
           title: 'Prijava odobrena!',
           html: `
             <p>Prijava je uspješno odobrena.</p>
-            <p><small><strong>Važno:</strong> Obavijestite korisnika putem email-a o odobrenju prijave na natjecanje.</small></p>
+            <p><small><strong>Važno:</strong> Obavijestite korisnika putem email-a o odobrenju prijave na događanje.</small></p>
           `,
           confirmButtonText: 'U redu'
         });
@@ -92,7 +92,7 @@ export default function AdminPrijave() {
         <p>Odbacujete prijavu za:</p>
         <p><strong>${prijava.ime} ${prijava.prezime}</strong></p>
         <p><strong>Email:</strong> ${prijava.email}</p>
-        <p><strong>Natjecanje:</strong> ${prijava.natjecanjeNaziv}</p>
+        <p><strong>Događanje:</strong> ${prijava.natjecanjeNaziv}</p>
       `,
       icon: 'warning',
       input: 'textarea',
@@ -143,7 +143,7 @@ export default function AdminPrijave() {
         <p>Brisanje prijave za:</p>
         <p><strong>${prijava.ime} ${prijava.prezime}</strong></p>
         <p><strong>Email:</strong> ${prijava.email}</p>
-        <p><strong>Natjecanje:</strong> ${prijava.natjecanjeNaziv}</p>
+        <p><strong>Događanje:</strong> ${prijava.natjecanjeNaziv}</p>
         <p><small>Ova akcija se ne može poništiti.</small></p>
       `,
       icon: 'warning',
@@ -241,13 +241,13 @@ export default function AdminPrijave() {
                 III. gimnazija, Split
               </span>
               <span className="text-sm text-white hidden sm:block">{/* hide tagline on xs */}
-                Prijave na natjecanja
+                Prijave na događanja
               </span>
             </div>
           </div>
           
           <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl lg:text-2xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-            PRIJAVE NA NATJECANJA
+            PRIJAVE NA DOGAĐANJA
           </h1>
           
           <Link href="/natjecanja">
@@ -263,7 +263,7 @@ export default function AdminPrijave() {
 
       {/* Mobile title below header */}
       <div className="md:hidden px-4 py-3 bg-white border-b border-gray-200">
-        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">PRIJAVE NA NATJECANJA</h1>
+        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">PRIJAVE NA DOGAĐANJA</h1>
       </div>
 
       {/* Main content */}
@@ -317,7 +317,7 @@ export default function AdminPrijave() {
             {/* Competition filter */}
             <div>
               <label htmlFor="natjecanje-filter" className="block text-sm font-medium text-gray-700 mb-2">
-                Filtriraj po natjecanju:
+                Filtriraj po događanju:
               </label>
               <select
                 id="natjecanje-filter"
@@ -325,7 +325,7 @@ export default function AdminPrijave() {
                 onChange={(e) => setSelectedNatjecanje(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-[#36b977] text-gray-900 bg-white"
               >
-                <option value="all">Sva natjecanja</option>
+                <option value="all">Sva događanja</option>
                 {uniqueNatjecanja.map(naziv => (
                   <option key={naziv} value={naziv}>{naziv}</option>
                 ))}

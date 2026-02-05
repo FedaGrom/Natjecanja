@@ -16,7 +16,7 @@ export default function KreacijaNatjecanja() {
   const [tipPrijave, setTipPrijave] = useState("web");
   const [customPrijavaLink, setCustomPrijavaLink] = useState("");
   const [loading, setLoading] = useState(false);
-  // Nova opcija: vrsta natjecanja (pojedinačno ili timsko)
+  // Nova opcija: vrsta događanja (pojedinačno ili timsko)
   const [vrstaNatjecanja, setVrstaNatjecanja] = useState('individual'); // 'individual' | 'team'
   // Opcionalno: minimalan/maksimalan broj članova ekipe
   const [teamMinMembers, setTeamMinMembers] = useState('');
@@ -96,14 +96,14 @@ export default function KreacijaNatjecanja() {
       // Show success popup with options
       const result = await Swal.fire({
         icon: 'success',
-        title: 'Natjecanje kreirano!',
+        title: 'Događanje kreirano!',
         html: `
           <p>Natjecanje "${naziv}" je uspješno kreirano kao draft.</p>
-          <p><small>Možete ga pregledati u "Moja natjecanja" i poslati administratoru na odobravanje.</small></p>
+          <p><small>Možete ga pregledati u "Moja događanja" i poslati administratoru na odobravanje.</small></p>
         `,
         showCancelButton: true,
-        confirmButtonText: 'Idi na moja natjecanja',
-        cancelButtonText: 'Kreiraj novo natjecanje',
+        confirmButtonText: 'Idi na moja događanja',
+        cancelButtonText: 'Kreiraj novo događanje',
         confirmButtonColor: '#36b977',
         cancelButtonColor: '#6b7280'
       });
@@ -150,7 +150,7 @@ export default function KreacijaNatjecanja() {
         await Swal.fire({
           icon: 'warning',
           title: 'Spremljeno lokalno',
-          text: 'Firestore nije dostupan, natjecanje je spremljeno lokalno',
+          text: 'Firestore nije dostupan, događanje je spremljeno lokalno',
           timer: 3000,
           showConfirmButton: false
         });
@@ -218,7 +218,7 @@ export default function KreacijaNatjecanja() {
           </Link>
         </div>
         <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-          KREIRAJ NATJECANJE
+          KREIRAJ DOGAĐANJE
         </h1>
         <div className="flex items-center gap-4">
           <img
@@ -233,14 +233,14 @@ export default function KreacijaNatjecanja() {
       </header>
       {/* Mobile title below header */}
       <div className="md:hidden px-4 py-3 bg-white border-b border-gray-200">
-        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">KREIRAJ NATJECANJE</h1>
+        <h1 className="text-xl font-extrabold text-[#36b977] text-center tracking-wide">KREIRAJ DOGAĐANJE</h1>
       </div>
       <div className="w-full flex flex-col items-center mt-12 bg-white overflow-x-hidden">{/* prevent horizontal scroll on mobile */}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 w-full max-w-md bg-gray-50 p-8 rounded-xl shadow"
         >
-          <label className="font-bold text-[#666]">Naziv natjecanja:</label>
+          <label className="font-bold text-[#666]">Naziv događanja:</label>
           <input
             type="text"
             value={naziv}
@@ -284,17 +284,17 @@ export default function KreacijaNatjecanja() {
             </>
           )}
 
-          <label className="font-bold text-[#666]">Opis natjecanja (opcionalno):</label>
+          <label className="font-bold text-[#666]">Opis događanja (opcionalno):</label>
           <textarea
             value={opis}
             onChange={(e) => setOpis(e.target.value)}
-            placeholder="Kratki opis natjecanja..."
+            placeholder="Kratki opis događanja..."
             className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] text-gray-900 bg-white resize-vertical min-h-[80px]"
             rows={3}
           />
 
-          {/* Nova sekcija: Vrsta natjecanja */}
-          <label className="font-bold text-[#666]">Vrsta natjecanja:</label>
+          {/* Nova sekcija: Vrsta događanja */}
+          <label className="font-bold text-[#666]">Vrsta događanja:</label>
           <div className="space-y-2">
             <label className="flex items-center space-x-2">
               <input

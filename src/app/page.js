@@ -6,7 +6,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Preusmjeri odmah na stranicu natjecanja
+    // Preusmjeri odmah na stranicu događanja
     router.push("/natjecanja");
   }, [router]);
 
@@ -17,7 +17,7 @@ export default function Home() {
           Preusmjeravanje...
         </div>
         <div className="text-gray-600">
-          Molimo pričekajte dok vas preusmjeravamo na stranicu natjecanja.
+          Molimo pričekajte dok vas preusmjeravamo na stranicu školskih događanja.
         </div>
       </div>
     </div>

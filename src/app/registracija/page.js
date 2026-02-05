@@ -167,7 +167,7 @@ export default function Registracija() {
               Zahtjev za registraciju
             </h2>
             <p className="text-gray-600">
-              Pošaljite zahtjev administratoru za pristup platformi natjecanja
+              Pošaljite zahtjev administratoru za pristup platformi školskih događanja.
             </p>
           </div>
 
@@ -286,7 +286,7 @@ export default function Registracija() {
                 onChange={handleChange}
                 rows={4}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#36b977] focus:border-transparent resize-vertical"
-                placeholder="Opišite zašto se želite registrirati na platformu natjecanja (npr. želim organizirati natjecanje iz glazbe, želim sudjelovati u kvizovima, itd.)"
+                placeholder="Opišite zašto se želite registrirati na platformu školskih događanja (npr. želim organizirati natjecanje iz glazbe, želim sudjelovati u kvizovima, itd.)"
                 required
               />
             </div>

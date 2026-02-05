@@ -21,7 +21,7 @@ export default function AdminPanel() {
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [filter, setFilter] = useState('pending'); // pending, approved, rejected, all
   
-  // Natjecanja za odobravanje
+  // Događanja za odobravanje
   const [natjecanja, setNatjecanja] = useState([]);
   const [loadingNatjecanja, setLoadingNatjecanja] = useState(true);
   const [natjecanjaFilter, setNatjecanjaFilter] = useState('pending');
@@ -428,7 +428,7 @@ export default function AdminPanel() {
     }
   };
 
-  // Funkcije za upravljanje natjecanjima
+  // Funkcije za upravljanje događanjima
   const handleApproveNatjecanje = async (natjecanje) => {
     const result = await Swal.fire({
       title: 'Odobri natjecanje?',
@@ -456,14 +456,14 @@ export default function AdminPanel() {
 
         await Swal.fire(
           'Objavljeno!',
-          'Natjecanje je uspješno objavljeno.',
+          'Događanje je uspješno objavljeno.',
           'success'
         );
       } catch (error) {
         console.error('Error approving competition:', error);
         await Swal.fire(
           'Greška!',
-          'Dogodila se greška prilikom objavljivanja natjecanja.',
+          'Dogodila se greška prilikom objavljivanja događanja.',
           'error'
         );
       }
@@ -472,9 +472,9 @@ export default function AdminPanel() {
 
   const handleRejectNatjecanje = async (natjecanje) => {
     const result = await Swal.fire({
-      title: 'Odbaci natjecanje?',
+      title: 'Odbaci događanje?',
       html: `
-        <p>Odbacujete natjecanje:</p>
+        <p>Odbacujete događanje:</p>
         <p><strong>${natjecanje.naziv}</strong></p>
         <p><strong>Kreirao:</strong> ${natjecanje.createdBy}</p>
         <br/>
@@ -514,14 +514,14 @@ export default function AdminPanel() {
 
         await Swal.fire(
           'Odbačeno!',
-          'Natjecanje je odbačeno.',
+          'Događanje je odbačeno.',
           'success'
         );
       } catch (error) {
         console.error('Error rejecting competition:', error);
         await Swal.fire(
           'Greška!',
-          'Dogodila se greška prilikom odbacivanja natjecanja.',
+          'Dogodila se greška prilikom odbacivanja događanja.',
           'error'
         );
       }
@@ -530,9 +530,9 @@ export default function AdminPanel() {
 
   const handleDeleteNatjecanje = async (natjecanje) => {
     const result = await Swal.fire({
-      title: 'Obriši natjecanje?',
+      title: 'Obriši događanje?',
       html: `
-        <p>Trajno brišete natjecanje:</p>
+        <p>Trajno brišete događanje:</p>
         <p><strong>${natjecanje.naziv}</strong></p>
         <p><strong>Kreirao:</strong> ${natjecanje.createdBy}</p>
       `,
@@ -549,14 +549,14 @@ export default function AdminPanel() {
         await deleteDoc(doc(db, 'natjecanja', natjecanje.id));
         await Swal.fire(
           'Obrisano!',
-          'Natjecanje je trajno obrisano.',
+          'Događanje je trajno obrisano.',
           'success'
         );
       } catch (error) {
         console.error('Error deleting competition:', error);
         await Swal.fire(
           'Greška!',
-          'Dogodila se greška prilikom brisanja natjecanja.',
+          'Dogodila se greška prilikom brisanja događanja.',
           'error'
         );
       }
@@ -602,8 +602,8 @@ export default function AdminPanel() {
       <div className="sticky top-16 md:top-20 w-full bg-amber-50 shadow-sm border-b border-amber-100 z-40">
         <div className="flex flex-wrap justify-center">
           <button onClick={() => setActiveTab('registrations')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'registrations' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Zahtjevi za registraciju</button>
-          <button onClick={() => setActiveTab('applications')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'applications' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Prijave na natjecanja</button>
-          <button onClick={() => setActiveTab('competitions')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'competitions' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Natjecanja za odobravanje</button>
+          <button onClick={() => setActiveTab('applications')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'applications' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Prijave na događanja</button>
+          <button onClick={() => setActiveTab('competitions')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'competitions' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Događanja za odobravanje</button>
           <button onClick={() => setActiveTab('users')} className={`px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold ${activeTab === 'users' ? 'text-amber-700 border-b-2 border-amber-500' : 'text-gray-700 hover:text-amber-600'}`}>Korisnici i Admini</button>
         </div>
       </div>
@@ -759,11 +759,11 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* Prijave na natjecanja */}
+        {/* Prijave na događanja */}
         {activeTab === 'applications' && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Prijave na natjecanja</h2>
+              <h2 className="text-2xl font-bold text-gray-800">Prijave na događanja</h2>
               <Link href="/admin/prijave">
                 <button className="bg-[#36b977] text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-2 font-medium">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -783,10 +783,10 @@ export default function AdminPanel() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Upravljanje prijavama na natjecanja
+                  Upravljanje prijavama na događanja
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Ovdje možete pregledati, odobriti ili odbaciti prijave korisnika na natjecanja. 
+                  Ovdje možete pregledati, odobriti ili odbaciti prijave korisnika na događanja. 
                   Kliknite na gumb iznad za detaljni pregled svih prijava.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -808,11 +808,11 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* Natjecanja za odobravanje */}
+        {/* Događanja za odobravanje */}
         {activeTab === 'competitions' && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Natjecanja za odobravanje</h2>
+              <h2 className="text-2xl font-bold text-gray-800">Događanja za odobravanje</h2>
               <div className="flex flex-wrap gap-2 justify-end max-w-full">
                 <button
                   onClick={() => setNatjecanjaFilter('pending')}
@@ -843,7 +843,7 @@ export default function AdminPanel() {
 
             {loadingNatjecanja ? (
               <div className="text-center py-8">
-                <div className="text-lg text-gray-600">Učitavanje natjecanja...</div>
+                <div className="text-lg text-gray-600">Učitavanje događanja...</div>
               </div>
             ) : (() => {
               const filteredNatjecanja = natjecanjaFilter === 'all' ? natjecanja : natjecanja.filter(n => n.status === natjecanjaFilter);
@@ -852,9 +852,9 @@ export default function AdminPanel() {
                 return (
                   <div className="text-center py-12 bg-white rounded-lg shadow">
                     <div className="text-gray-500 text-lg mb-2">
-                      {natjecanjaFilter === 'all' ? 'Nema natjecanja' :
-                        natjecanjaFilter === 'pending' ? 'Nema natjecanja na čekanju' :
-                          natjecanjaFilter === 'published' ? 'Nema objavljenih natjecanja' : 'Nema odbačenih natjecanja'}
+                      {natjecanjaFilter === 'all' ? 'Nema događanja' :
+                        natjecanjaFilter === 'pending' ? 'Nema događanja na čekanju' :
+                          natjecanjaFilter === 'published' ? 'Nema objavljenih događanja' : 'Nema odbačenih događanja'}
                     </div>
                   </div>
                 );

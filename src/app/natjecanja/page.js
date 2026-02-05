@@ -94,8 +94,8 @@ export default function Natjecanja() {
           icon: 'info',
           title: 'Prijave su zatvorene',
           text: phase === 'aktivan' 
-            ? 'Natjecanje je u tijeku, prijave više nisu moguće.'
-            : 'Natjecanje je završilo, prijave nisu moguće.'
+            ? 'Događanje je u tijeku, prijave više nisu moguće.'
+            : 'Događanje je završilo, prijave nisu moguće.'
         });
         return;
       }
@@ -141,7 +141,7 @@ export default function Natjecanja() {
     
     const result = await Swal.fire({
       title: 'Jeste li sigurni?',
-      text: `Želite obrisati natjecanje "${naziv}"?`,
+      text: `Želite obrisati događanje "${naziv}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -155,14 +155,14 @@ export default function Natjecanja() {
         await deleteDoc(doc(db, 'natjecanja', id));
         await Swal.fire(
           'Obrisano!',
-          'Natjecanje je uspješno obrisano.',
+          'Događanje je uspješno obrisano.',
           'success'
         );
       } catch (error) {
         console.error('Error deleting document:', error);
         await Swal.fire(
           'Greška!',
-          'Dogodila se greška prilikom brisanja natjecanja.',
+          'Dogodila se greška prilikom brisanja događanja.',
           'error'
         );
       }
@@ -285,9 +285,9 @@ export default function Natjecanja() {
             </div>
           </div>
 
-          {/* Sredina - Naslov NATJECANJA (samo na desktop) */}
+          {/* Sredina - Naslov DOGAĐANJA (samo na desktop) */}
           <h1 className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-extrabold text-white whitespace-nowrap tracking-wide transition-all duration-300 hover:scale-110 hover:text-[#36b977] cursor-pointer">
-            NATJECANJA
+            ŠKOLSKA DOGAĐANJA
           </h1>
 
           {/* Desno - Botuni/Menu */}
@@ -299,12 +299,12 @@ export default function Natjecanja() {
                   <div className="flex items-center gap-2">
                     <Link href="/moja-natjecanja">
                       <button className="bg-blue-600 text-white font-bold px-4 py-2 rounded hover:bg-blue-700 transition-colors duration-200">
-                        Moja natjecanja
+                        Moja događanja
                       </button>
                     </Link>
                     <Link href="/kreacija">
                       <button className="bg-[#36b977] text-white font-bold px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200">
-                        Kreiraj natjecanje
+                        Kreiraj događanje
                       </button>
                     </Link>
                     {isAdmin && (
@@ -352,10 +352,10 @@ export default function Natjecanja() {
                         {user.email} {isAdmin && '(Admin)'}
                       </div>
                       <Link href="/moja-natjecanja">
-                        <button className="w-full text-left px-4 py-3 text-gray-900 hover:bg-gray-100">Moja natjecanja</button>
+                        <button className="w-full text-left px-4 py-3 text-gray-900 hover:bg-gray-100">Moja događanja</button>
                       </Link>
                       <Link href="/kreacija">
-                        <button className="w-full text-left px-4 py-3 text-gray-900 hover:bg-gray-100">Kreiraj natjecanje</button>
+                        <button className="w-full text-left px-4 py-3 text-gray-900 hover:bg-gray-100">Kreiraj događanje</button>
                       </Link>
                       {isAdmin && (
                         <Link href="/admin">
@@ -384,7 +384,7 @@ export default function Natjecanja() {
       {/* Mobilni naslov ispod headera */}
       <div className={`md:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-40 ${isSidebarOpen ? 'hidden' : ''}`}>
         <h1 className="text-2xl font-extrabold text-[#36b977] text-center tracking-wide">
-          NATJECANJA
+          DOGAĐANJA
         </h1>
       </div>
 
@@ -429,9 +429,9 @@ export default function Natjecanja() {
               </select>
             </div>
 
-            {/* Vrsta natjecanja */}
+            {/* Vrsta događanja */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Vrsta natjecanja</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Vrsta događanja</label>
               <select 
                 value={selected} 
                 onChange={e => setSelected(e.target.value)} 
@@ -478,7 +478,7 @@ export default function Natjecanja() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Pretraži natjecanja..."
+              placeholder="Pretraži događanja..."
               className="w-full border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#36b977] placeholder-gray-500 bg-white/80"
             />
           </div>
@@ -595,7 +595,7 @@ export default function Natjecanja() {
                         href={`/natjecanja/${natjecanje.id}/prijava`}
                         onClick={(e) => { e.stopPropagation(); /* allow anchor */ }}
                         className="md:absolute md:bottom-4 md:right-4 w-full md:w-auto mt-4 md:mt-0 bg-[#36b977] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center justify-center md:justify-start gap-2 shadow-lg z-10 no-underline"
-                        title="Prijavi se na natjecanje"
+                        title="Prijavi se na događanje"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -624,7 +624,7 @@ export default function Natjecanja() {
                           handleDeleteNatjecanje(natjecanje.id, natjecanje.naziv);
                         }}
                         className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center justify-center md:justify-start gap-2 shadow-lg z-10"
-                        title="Obriši natjecanje"
+                        title="Obriši događanje"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -654,7 +654,7 @@ export default function Natjecanja() {
             })
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg mb-4">Nema natjecanja koja odgovaraju vašim filterima.</p>
+              <p className="text-gray-500 text-lg mb-4">Nema događanja koja odgovaraju vašim filterima.</p>
               <button 
                 onClick={() => { setSelected(''); setGodina(''); setSearch(''); }} 
                 className="bg-[#36b977] text-white px-6 py-2 rounded hover:bg-green-600 transition-colors duration-200"
