@@ -4,7 +4,19 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import { db, auth } from "../../firebase/config";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDocs, getDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+  setDoc,
+  getDocs,
+  getDoc,
+  where,
+} from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { getAuth } from "firebase/auth";
 import Swal from 'sweetalert2';
@@ -30,7 +42,16 @@ export default function AdminPanel() {
   const [users, setUsers] = useState([]);
   const [admins, setAdmins] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  
+
+  // Detalji za pojedinog korisnika
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserDetails, setSelectedUserDetails] = useState({
+    loading: false,
+    createdCompetitions: [],
+    registeredCompetitions: [],
+    error: null,
+  });
+
   const router = useRouter();
 
   useEffect(() => {
@@ -563,6 +584,133 @@ export default function AdminPanel() {
     }
   };
 
+  const handleDeleteUser = async (targetUser) => {
+    if (!targetUser?.uid) return;
+
+    const result = await Swal.fire({
+      title: "Obriši korisnika?",
+      html: `
+        <p>Trajno brišete korisnika:</p>
+        <p><strong>${targetUser.ime || ""} ${targetUser.prezime || ""}</strong></p>
+        <p><strong>Email:</strong> ${targetUser.email}</p>
+        <p style="margin-top:8px;font-size:12px;color:#666;">
+          Napomena: ovo briše podatke iz Firestore kolekcija, ali ne briše Firebase Auth račun.
+        </p>
+      `,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Da, obriši",
+      cancelButtonText: "Odustani",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      // obriši iz 'users' (doc id = uid)
+      await deleteDoc(doc(db, "users", targetUser.uid));
+
+      // obriši eventualni registrationRequest vezan za email (ako postoji)
+      try {
+        const reqQ = query(
+          collection(db, "registrationRequests"),
+          where("email", "==", targetUser.email)
+        );
+        const reqSnap = await getDocs(reqQ);
+        const batchDeletes = reqSnap.docs.map((d) => deleteDoc(d.ref));
+        await Promise.all(batchDeletes);
+      } catch (_) {
+        // ignoriraj ako kolekcija / dokumenti ne postoje
+      }
+
+      // ako je admin – ukloni ga iz 'admins'
+      try {
+        await deleteDoc(doc(db, "admins", targetUser.uid));
+      } catch (_) {
+        // ignoriraj ako nije admin
+      }
+
+      await Swal.fire(
+        "Obrisano!",
+        "Korisnik je uklonjen iz baze (Firestore).",
+        "success"
+      );
+
+      // osvježi prikaz
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      await Swal.fire(
+        "Greška!",
+        "Dogodila se greška prilikom brisanja korisnika.",
+        "error"
+      );
+    }
+  };
+
+  // Dohvat detalja o natjecanjima za pojedinog korisnika
+  const loadUserDetails = async (targetUser) => {
+    if (!targetUser?.email) return;
+    setSelectedUser(targetUser);
+    setSelectedUserDetails((prev) => ({
+      ...prev,
+      loading: true,
+      error: null,
+    }));
+
+    try {
+      // Natjecanja koja je korisnik izradio (pretpostavljamo createdBy = email)
+      const createdQ = query(
+        collection(db, "natjecanja"),
+        where("createdBy", "==", targetUser.email)
+      );
+      const createdSnap = await getDocs(createdQ);
+      const createdCompetitions = createdSnap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      }));
+
+      // Natjecanja na koja je korisnik prijavljen
+      // PRETPOSTAVKA: postoji kolekcija 'prijave' sa poljima:
+      // - userEmail (email korisnika)
+      // - natjecanjeId
+      // - natjecanjeNaziv (opcionalno)
+      let registeredCompetitions = [];
+      try {
+        const regQ = query(
+          collection(db, "prijave"),
+          where("userEmail", "==", targetUser.email)
+        );
+        const regSnap = await getDocs(regQ);
+        registeredCompetitions = regSnap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+      } catch (e) {
+        console.warn(
+          "Nije moguće učitati prijave (provjerite strukturu kolekcije 'prijave'):",
+          e
+        );
+      }
+
+      setSelectedUserDetails({
+        loading: false,
+        createdCompetitions,
+        registeredCompetitions,
+        error: null,
+      });
+    } catch (error) {
+      console.error("Error loading user details:", error);
+      setSelectedUserDetails({
+        loading: false,
+        createdCompetitions: [],
+        registeredCompetitions: [],
+        error: "Nije moguće učitati detalje korisnika.",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-yellow-50">
@@ -613,33 +761,62 @@ export default function AdminPanel() {
         {/* Zahtjevi za registraciju */}
         {activeTab === 'registrations' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
               <h2 className="text-2xl font-bold text-amber-900">Zahtjevi za registraciju</h2>
-              <div className="flex flex-wrap gap-2 justify-end max-w-full">
-                <button
-                  onClick={() => setFilter('pending')}
-                  className={`px-3 py-2 rounded text-sm w-auto ${filter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  Na čekanju ({zahtjevi.filter(z => z.status === 'pending').length})
-                </button>
-                <button
-                  onClick={() => setFilter('approved')}
-                  className={`px-3 py-2 rounded text-sm w-auto ${filter === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  Odobreni ({zahtjevi.filter(z => z.status === 'approved').length})
-                </button>
-                <button
-                  onClick={() => setFilter('rejected')}
-                  className={`px-3 py-2 rounded text-sm w-auto ${filter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  Odbačeni ({zahtjevi.filter(z => z.status === 'rejected').length})
-                </button>
-                <button
-                  onClick={() => setFilter('all')}
-                  className={`px-3 py-2 rounded text-sm w-auto ${filter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  Svi ({zahtjevi.length})
-                </button>
+
+              {/* Mobile dropdown */}
+              <div className="w-full md:w-auto">
+                <div className="md:hidden">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Vrsta zahtjeva
+                  </label>
+                  <select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+                  >
+                    <option value="pending">
+                      Na čekanju ({zahtjevi.filter(z => z.status === 'pending').length})
+                    </option>
+                    <option value="approved">
+                      Odobreni ({zahtjevi.filter(z => z.status === 'approved').length})
+                    </option>
+                    <option value="rejected">
+                      Odbačeni ({zahtjevi.filter(z => z.status === 'rejected').length})
+                    </option>
+                    <option value="all">
+                      Svi ({zahtjevi.length})
+                    </option>
+                  </select>
+                </div>
+
+                {/* Desktop buttons */}
+                <div className="hidden md:flex flex-wrap gap-2 justify-end max-w-full">
+                  <button
+                    onClick={() => setFilter('pending')}
+                    className={`px-3 py-2 rounded text-sm w-auto ${filter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Na čekanju ({zahtjevi.filter(z => z.status === 'pending').length})
+                  </button>
+                  <button
+                    onClick={() => setFilter('approved')}
+                    className={`px-3 py-2 rounded text-sm w-auto ${filter === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Odobreni ({zahtjevi.filter(z => z.status === 'approved').length})
+                  </button>
+                  <button
+                    onClick={() => setFilter('rejected')}
+                    className={`px-3 py-2 rounded text-sm w-auto ${filter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Odbačeni ({zahtjevi.filter(z => z.status === 'rejected').length})
+                  </button>
+                  <button
+                    onClick={() => setFilter('all')}
+                    className={`px-3 py-2 rounded text-sm w-auto ${filter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Svi ({zahtjevi.length})
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -811,33 +988,62 @@ export default function AdminPanel() {
         {/* Događanja za odobravanje */}
         {activeTab === 'competitions' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Događanja za odobravanje</h2>
-              <div className="flex flex-wrap gap-2 justify-end max-w-full">
-                <button
-                  onClick={() => setNatjecanjaFilter('pending')}
-                  className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  Na čekanju ({natjecanja.filter(n => n.status === 'pending').length})
-                </button>
-                <button
-                  onClick={() => setNatjecanjaFilter('published')}
-                  className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'published' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  Objavljena ({natjecanja.filter(n => n.status === 'published').length})
-                </button>
-                <button
-                  onClick={() => setNatjecanjaFilter('rejected')}
-                  className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  Odbačena ({natjecanja.filter(n => n.status === 'rejected').length})
-                </button>
-                <button
-                  onClick={() => setNatjecanjaFilter('all')}
-                  className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  Sva ({natjecanja.length})
-                </button>
+
+              {/* Mobile dropdown */}
+              <div className="w-full md:w-auto">
+                <div className="md:hidden">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Vrsta događanja
+                  </label>
+                  <select
+                    value={natjecanjaFilter}
+                    onChange={(e) => setNatjecanjaFilter(e.target.value)}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+                  >
+                    <option value="pending">
+                      Na čekanju ({natjecanja.filter(n => n.status === 'pending').length})
+                    </option>
+                    <option value="published">
+                      Objavljena ({natjecanja.filter(n => n.status === 'published').length})
+                    </option>
+                    <option value="rejected">
+                      Odbačena ({natjecanja.filter(n => n.status === 'rejected').length})
+                    </option>
+                    <option value="all">
+                      Sva ({natjecanja.length})
+                    </option>
+                  </select>
+                </div>
+
+                {/* Desktop buttons */}
+                <div className="hidden md:flex flex-wrap gap-2 justify-end max-w-full">
+                  <button
+                    onClick={() => setNatjecanjaFilter('pending')}
+                    className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Na čekanju ({natjecanja.filter(n => n.status === 'pending').length})
+                  </button>
+                  <button
+                    onClick={() => setNatjecanjaFilter('published')}
+                    className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'published' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Objavljena ({natjecanja.filter(n => n.status === 'published').length})
+                  </button>
+                  <button
+                    onClick={() => setNatjecanjaFilter('rejected')}
+                    className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Odbačena ({natjecanja.filter(n => n.status === 'rejected').length})
+                  </button>
+                  <button
+                    onClick={() => setNatjecanjaFilter('all')}
+                    className={`px-3 py-2 rounded text-sm w-auto ${natjecanjaFilter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Sva ({natjecanja.length})
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -925,7 +1131,206 @@ export default function AdminPanel() {
 
         {activeTab === 'users' && (
           <div>
-            <div className="bg-white rounded-lg shadow p-6 text-gray-700">Upravljanje korisnicima privremeno nije dostupno.</div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Korisnici i Admini
+            </h2>
+
+            {loadingUsers ? (
+              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-700">
+                Učitavanje korisnika...
+              </div>
+            ) : users.length === 0 ? (
+              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-700">
+                Nema registriranih korisnika.
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-4 md:p-6">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 pr-4 font-semibold text-gray-800">
+                          Ime i prezime
+                        </th>
+                        <th className="text-left py-2 pr-4 font-semibold text-gray-800">
+                          Email
+                        </th>
+                        <th className="text-left py-2 pr-4 font-semibold text-gray-800">
+                          Razred
+                        </th>
+                        <th className="text-left py-2 pr-4 font-semibold text-gray-800">
+                          Uloga
+                        </th>
+                        <th className="text-right py-2 pl-4 font-semibold text-gray-800">
+                          Akcije
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u) => {
+                        const isUserAdmin = admins.some((a) => a.uid === u.uid);
+                        return (
+                          <tr
+                            key={u.uid || u.id}
+                            className="border-b last:border-0 hover:bg-gray-50"
+                          >
+                            <td className="py-2 pr-4 text-gray-900 font-medium">
+                              {(u.ime || "") + " " + (u.prezime || "")}
+                            </td>
+                            <td className="py-2 pr-4 text-gray-800">
+                              {u.email}
+                            </td>
+                            <td className="py-2 pr-4 text-gray-700">
+                              {u.razred || u.class || "-"}
+                            </td>
+                            <td className="py-2 pr-4">
+                              {isUserAdmin ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold">
+                                  Admin
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-semibold">
+                                  Korisnik
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2 pl-4">
+                              <div className="flex flex-wrap justify-end gap-2">
+                                <button
+                                  onClick={() => loadUserDetails(u)}
+                                  className="px-3 py-1 rounded bg-blue-500 text-white text-xs md:text-sm hover:bg-blue-600"
+                                >
+                                  Detalji
+                                </button>
+                                {isUserAdmin ? (
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveAdmin(u.uid, u.email)
+                                    }
+                                    className="px-3 py-1 rounded bg-amber-500 text-white text-xs md:text-sm hover:bg-amber-600"
+                                  >
+                                    Ukloni admina
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() =>
+                                      handleMakeAdmin(u.email, u.uid)
+                                    }
+                                    className="px-3 py-1 rounded bg-emerald-500 text-white text-xs md:text-sm hover:bg-emerald-600"
+                                  >
+                                    Postavi adminom
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDeleteUser(u)}
+                                  className="px-3 py-1 rounded bg-red-500 text-white text-xs md:text-sm hover:bg-red-600"
+                                >
+                                  Ukloni
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Detalji odabranog korisnika */}
+            {selectedUser && (
+              <div className="bg-white rounded-lg shadow p-6 space-y-4 mt-6">
+                <div className="flex justify-between items-start gap-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Detalji korisnika
+                    </h3>
+                    <p className="text-gray-900 font-medium">
+                      {selectedUser.ime} {selectedUser.prezime}
+                    </p>
+                    <p className="text-gray-800 text-sm">
+                      {selectedUser.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setSelectedUserDetails({
+                        loading: false,
+                        createdCompetitions: [],
+                        registeredCompetitions: [],
+                        error: null,
+                      });
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Zatvori
+                  </button>
+                </div>
+
+                {selectedUserDetails.loading ? (
+                  <p className="text-gray-700">Učitavanje detalja...</p>
+                ) : selectedUserDetails.error ? (
+                  <p className="text-red-600 text-sm">
+                    {selectedUserDetails.error}
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        Događanja koja je korisnik izradio
+                      </h4>
+                      {selectedUserDetails.createdCompetitions.length === 0 ? (
+                        <p className="text-gray-500 text-sm">
+                          Nema izrađenih događanja.
+                        </p>
+                      ) : (
+                        <ul className="space-y-1 text-sm text-gray-700">
+                          {selectedUserDetails.createdCompetitions.map((c) => (
+                            <li key={c.id} className="flex justify-between">
+                              <span>{c.naziv}</span>
+                              <span className="text-xs text-gray-500">
+                                {c.datum}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        Događanja na koja je korisnik prijavljen
+                      </h4>
+                      {selectedUserDetails.registeredCompetitions.length === 0 ? (
+                        <p className="text-gray-500 text-sm">
+                          Nema prijava na događanja ili kolekcija "prijave" nije
+                          konfigurirana.
+                        </p>
+                      ) : (
+                        <ul className="space-y-1 text-sm text-gray-700">
+                          {selectedUserDetails.registeredCompetitions.map(
+                            (r) => (
+                              <li key={r.id} className="flex justify-between">
+                                <span>
+                                  {r.natjecanjeNaziv || r.natjecanjeId || r.id}
+                                </span>
+                                {r.status && (
+                                  <span className="text-xs text-gray-500">
+                                    {r.status}
+                                  </span>
+                                )}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
