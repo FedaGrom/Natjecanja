@@ -161,9 +161,9 @@ export default function AdminPanel() {
           
           // Separate by status and prepare for display
           const activeUsers = uniqueUsers.filter(user => 
-            // Include all users from 'users' collection, and approved users from registrationRequests
+            // Svi iz 'users' kolekcije + svi zahtjevi koji NISU eksplicitno odbijeni
             user.source === 'users' || 
-            (user.source === 'registrationRequests' && user.status === 'approved')
+            (user.source === 'registrationRequests' && user.status !== 'rejected')
           );
           
           // Format users for display
@@ -245,56 +245,68 @@ export default function AdminPanel() {
       cancelButtonText: 'Odustani'
     });
 
-    if (result.isConfirmed) {
-      try {
-        // Create Firebase user with email and password
-        const userCredential = await createUserWithEmailAndPassword(auth, zahtjev.email, zahtjev.password);
-        
-        // Add user to 'users' collection in Firestore
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
-          email: zahtjevi.email,
-          ime: zahtjevi.ime,
-          prezime: zahtjevi.prezime,
-          razred: zahtjevi.razred || '',
-          registracija: new Date(),
-          approvedAt: new Date(),
-          approvedBy: user.email,
-          uid: userCredential.user.uid
-        });
-        
-        // Update request status to approved
-        await updateDoc(doc(db, 'registrationRequests', zahtjev.id), {
-          status: 'approved',
-          approvedAt: new Date().toISOString(),
-          userId: userCredential.user.uid
-        });
+    if (!result.isConfirmed) return;
 
-        await Swal.fire(
-          'Odobreno!',
-          'Korisnik je uspješno registriran i dodan u bazu.',
-          'success'
-        );
-        
-        // Reload users data to show the new user
-        window.location.reload();
-      } catch (error) {
-        console.error('Error approving registration:', error);
-        let errorMessage = 'Dogodila se greška prilikom odobravanja zahtjeva.';
-        
-        if (error.code === 'auth/email-already-in-use') {
-          errorMessage = 'Korisnik s tim emailom već postoji.';
-        } else if (error.code === 'auth/invalid-email') {
-          errorMessage = 'Neispravna email adresa.';
-        } else if (error.code === 'auth/weak-password') {
-          errorMessage = 'Šifra je previše slaba.';
-        }
+    try {
+      const passwordToUse =
+        zahtjev.password && zahtjev.password.length >= 6
+          ? zahtjev.password
+          : 'temp' + Math.random().toString(36).slice(2, 8);
 
-        await Swal.fire(
-          'Greška!',
-          errorMessage,
-          'error'
-        );
+      // 1) Kreiraj korisnika u Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        zahtjev.email,
+        passwordToUse
+      );
+
+      // 2) Upis u kolekciju 'users'
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: zahtjev.email,
+        ime: zahtjev.ime || '',
+        prezime: zahtjev.prezime || '',
+        razred: zahtjev.razred || '',
+        registracija: new Date(),
+        approvedAt: new Date(),
+        approvedBy: user.email,
+      });
+
+      // 3) Ažuriraj dokument zahtjeva
+      const updateData = {
+        status: 'approved',
+        approvedAt: new Date().toISOString(),
+        approvedBy: user.email,
+        userId: userCredential.user.uid,
+      };
+      if (!zahtjev.password || zahtjev.password.length < 6) {
+        updateData.tempPassword = passwordToUse;
       }
+
+      await updateDoc(doc(db, 'registrationRequests', zahtjev.id), updateData);
+
+      await Swal.fire(
+        'Odobreno!',
+        'Korisnik je uspješno registriran i dodan u bazu.',
+        'success'
+      );
+
+      window.location.reload();
+    } catch (error) {
+      console.error('Error approving registration:', error);
+      let errorMessage = 'Dogodila se greška prilikom odobravanja zahtjeva.';
+
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Korisnik s tim emailom već postoji.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Neispravna email adresa.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Šifra je previše slaba.';
+      } else if (error.code === 'auth/missing-password') {
+        errorMessage = 'Nedostaje lozinka za korisnika.';
+      }
+
+      await Swal.fire('Greška!', errorMessage, 'error');
     }
   };
 

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { db, auth } from "../../../firebase/config";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useAuth } from "../../../contexts/AuthContext";
 import Swal from 'sweetalert2';
@@ -54,49 +54,69 @@ export default function AdminZahtjevi() {
       cancelButtonText: 'Odustani'
     });
 
-    if (result.isConfirmed) {
-      try {
-        // Generate temporary password
-        const tempPassword = 'temp' + Math.random().toString(36).slice(2, 8);
-        
-        // Create user account in Firebase Auth
-        await createUserWithEmailAndPassword(auth, zahtjev.email, tempPassword);
-        
-        // Update request status
-        await updateDoc(doc(db, 'registrationRequests', zahtjev.id), {
-          status: 'approved',
-          approvedAt: new Date().toISOString(),
-          tempPassword: tempPassword,
-          approvedBy: user.email
-        });
+    if (!result.isConfirmed) return;
 
-        await Swal.fire({
-          icon: 'success',
-          title: 'Zahtjev odobren!',
-          html: `
-            <p>Korisnik je uspješno registriran.</p>
-            <p><strong>Privremena lozinka:</strong> ${tempPassword}</p>
-            <p><small><strong>Važno:</strong> Obavijestite korisnika putem email-a o odobrenju registracije i privremnoj lozinki.</small></p>
-          `,
-          confirmButtonText: 'U redu'
-        });
+    try {
+      const passwordToUse =
+        zahtjev.password && zahtjev.password.length >= 6
+          ? zahtjev.password
+          : 'temp' + Math.random().toString(36).slice(2, 8);
 
-      } catch (error) {
-        console.error('Error approving request:', error);
-        let errorMessage = 'Dogodila se greška prilikom odobravanja zahtjeva.';
-        
-        if (error.code === 'auth/email-already-in-use') {
-          errorMessage = 'Email adresa je već u upotrebi.';
-        } else if (error.code === 'auth/weak-password') {
-          errorMessage = 'Lozinka je preslaba.';
-        }
-        
-        await Swal.fire({
-          icon: 'error',
-          title: 'Greška',
-          text: errorMessage
-        });
+      // 1) Kreiraj korisnika u Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        zahtjev.email,
+        passwordToUse
+      );
+
+      // 2) Upis u 'users'
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: zahtjev.email,
+        ime: zahtjev.ime || '',
+        prezime: zahtjev.prezime || '',
+        razred: zahtjev.razred || '',
+        registracija: new Date(),
+        approvedAt: new Date(),
+        approvedBy: user.email,
+      });
+
+      // 3) Ažuriraj zahtjev
+      await updateDoc(doc(db, 'registrationRequests', zahtjev.id), {
+        status: 'approved',
+        approvedAt: new Date().toISOString(),
+        tempPassword: passwordToUse,
+        approvedBy: user.email,
+        userId: userCredential.user.uid,
+      });
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Zahtjev odobren!',
+        html: `
+          <p>Korisnik je uspješno registriran.</p>
+          <p><strong>Privremena lozinka:</strong> ${passwordToUse}</p>
+          <p><small><strong>Važno:</strong> Obavijestite korisnika putem email-a o odobrenju registracije i privremenoj lozinki.</small></p>
+        `,
+        confirmButtonText: 'U redu'
+      });
+    } catch (error) {
+      console.error('Error approving request:', error);
+      let errorMessage = 'Dogodila se greška prilikom odobravanja zahtjeva.';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Email adresa je već u upotrebi.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Lozinka je preslaba.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Neispravna email adresa.';
       }
+
+      await Swal.fire({
+        icon: 'error',
+        title: 'Greška',
+        text: errorMessage
+      });
     }
   };
 
